@@ -18,14 +18,17 @@ import com.nimbusds.jose.JWECryptoParts;
 import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.KeyException;
-import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.util.Base64URL;
+import java.util.Map;
+import java.util.Objects;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
+@AllArgsConstructor
 public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements JWEEncrypter {
 
     @NonNull
@@ -34,19 +37,12 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
     @NonNull
     private final String keyId;
 
+    private final Map<String, String> encryptionContext;
 
-    /**
-     * Creates a new AES encrypter.
-     *
-     * @param keyId The Key Encryption Key. Must be 128 bits (16 bytes), 192 bits (24 bytes) or 256 bits (32 bytes).
-     *              Must not be {@code null}.
-     * @param kms
-     * @throws KeyLengthException If the KEK length is invalid.
-     */
-    public KmsSymmetricEncrypter(final String keyId, final AWSKMS kms)
-            throws KeyLengthException {
+    public KmsSymmetricEncrypter(final AWSKMS kms, final String keyId) {
         this.kms = kms;
         this.keyId = keyId;
+        this.encryptionContext = null;
     }
 
     @Override
@@ -54,27 +50,38 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
             throws JOSEException {
 
         final JWEAlgorithm alg = header.getAlgorithm();
+        final EncryptionMethod enc = header.getEncryptionMethod();
 
         if (!SUPPORTED_ALGORITHMS.contains(alg)) {
             throw new JOSEException(AlgorithmSupportMessage.unsupportedJWEAlgorithm(alg, SUPPORTED_ALGORITHMS));
+        }
+
+        if (!SUPPORTED_ENCRYPTION_METHODS.contains(enc)) {
+            throw new JOSEException(
+                    AlgorithmSupportMessage.unsupportedEncryptionMethod(enc, SUPPORTED_ENCRYPTION_METHODS));
         }
 
         final JWEHeader updatedHeader; // We need to work on the header
         final Base64URL encryptedKey; // The second JWE part
 
         // Generate and encrypt the CEK according to the enc method
-        final EncryptionMethod enc = header.getEncryptionMethod();
-        // data gene
-        GenerateDataKeyResult generateDataKeyResult = generateDataKey(keyId, header.getAlgorithm().toString());
-        final SecretKey cek = new SecretKeySpec(generateDataKeyResult.getPlaintext().array(), "AES");
+        GenerateDataKeyResult generateDataKeyResult = generateDataKey(keyId, enc);
+        final SecretKey cek = new SecretKeySpec(generateDataKeyResult.getPlaintext().array(), alg.toString());
 
         encryptedKey = Base64URL.encode(generateDataKeyResult.getCiphertextBlob().array());
-        updatedHeader = header; // simply copy ref
+        if (Objects.nonNull(encryptionContext)) {
+            updatedHeader = new JWEHeader.Builder(header)
+                    .customParams(Map.of(ENCRYPTION_CONTEXT_HEADER, encryptionContext))
+                    .build();
+        } else {
+            updatedHeader = header; // simply copy ref
+        }
 
         return ContentCryptoProvider.encrypt(updatedHeader, clearText, cek, encryptedKey, getJCAContext());
     }
 
-    private GenerateDataKeyResult generateDataKey(String keyId, String encryptionMethod) throws JOSEException {
+    private GenerateDataKeyResult generateDataKey(String keyId, EncryptionMethod encryptionMethod)
+            throws JOSEException {
         try {
             return kms.generateDataKey(buildGenerateDataKeyRequest(keyId, encryptionMethod));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
@@ -86,10 +93,11 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
         }
     }
 
-    private GenerateDataKeyRequest buildGenerateDataKeyRequest(String keyId, String encryptionMethod) {
+    private GenerateDataKeyRequest buildGenerateDataKeyRequest(String keyId, EncryptionMethod encryptionMethod) {
         GenerateDataKeyRequest generateDataKeyRequest = new GenerateDataKeyRequest();
         generateDataKeyRequest.setKeyId(keyId);
-        generateDataKeyRequest.setKeySpec(encryptionMethod);
+        generateDataKeyRequest.setKeySpec(ENCRYPTION_METHOD_TO_DATA_KEY_SPEC_MAP.get(encryptionMethod));
+        generateDataKeyRequest.setEncryptionContext(encryptionContext);
         return generateDataKeyRequest;
     }
 }
