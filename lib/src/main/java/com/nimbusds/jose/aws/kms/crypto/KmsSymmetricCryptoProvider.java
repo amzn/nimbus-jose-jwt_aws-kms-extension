@@ -4,6 +4,7 @@ import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
+import com.nimbusds.jose.crypto.impl.PublicBaseJWEProvider;
 import com.nimbusds.jose.util.ByteUtils;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ import java.util.Set;
 import javax.crypto.SecretKey;
 import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
 
-public abstract class KmsSymmetricCryptoProvider extends BaseJWEProvider {
+public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
 
     /**
      * The supported JWE algorithms by the AES crypto provider class.
