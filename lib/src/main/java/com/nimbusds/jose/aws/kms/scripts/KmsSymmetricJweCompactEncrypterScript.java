@@ -9,7 +9,6 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.aws.kms.crypto.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.aws.kms.crypto.KmsSymmetricEncrypter;
 import java.util.Map;
 import org.apache.commons.cli.DefaultParser;
@@ -47,7 +46,7 @@ public class KmsSymmetricJweCompactEncrypterScript {
                         KmsSymmetricJweCompactEncrypterScriptOptionNames.PAYLOAD))) {
 
             out.printf("%1$s%2$s, %3$s, %4$s and %5$s options are required. "
-                            + "Use '--%6$s' for details of these options.%1$s",
+                            + "Use '%6$s' for details of these options.%1$s",
                     LINE_SEPARATOR, KmsSymmetricJweCompactEncrypterScriptOptionNames.ALG,
                     KmsSymmetricJweCompactEncrypterScriptOptionNames.ENC,
                     KmsSymmetricJweCompactEncrypterScriptOptionNames.KID,

@@ -112,7 +112,7 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
 
     private DecryptRequest buildDecryptRequest(String keyId, Object encryptionContext, Base64URL encryptedKey) {
         return new DecryptRequest()
-                .setEncryptionContext(Map.of(ENCRYPTION_CONTEXT_HEADER, encryptionContext.toString()))
+                .withEncryptionContext(Map.of(ENCRYPTION_CONTEXT_HEADER, encryptionContext.toString()))
                 .withKeyId(keyId)
                 .withCiphertextBlob(ByteBuffer.wrap(encryptedKey.decode()));
     }

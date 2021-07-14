@@ -35,17 +35,20 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-//tasks.register ('kms-symmetric-jwe-encrypt') {
-//    doLast() {
-//    }
-//    description = "Secure algorythm testing"
-//    classpath = ''
-//}
-
 task kmsSymmetricJWEEncrypt(type: JavaExec) {
     group = 'Execution'
     description = 'Run the main class with JavaExecTask'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsSymmetricJweCompactEncrypterScript'
-    args = ['--alg', "$alg", '--enc', "$enc", '--kid', "$kid", '--payload', "$payload"]
+
+    def arguments = []
+    project.getProperties().forEach { prop, val ->
+        if (['alg', 'enc', 'kid', 'payload', 'help'].contains(prop)) {
+            arguments.add("--$prop")
+            if (val) {
+                arguments.add(val)
+            }
+        }
+    }
+    args = arguments
 }
