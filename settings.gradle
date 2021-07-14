@@ -7,5 +7,5 @@
  * in the user manual at https://docs.gradle.org/7.1.1/userguide/multi_project_builds.html
  */
 
-rootProject.name = 'Nimbus_Jose_library'
+rootProject.name = 'com.nimbusds.jose.aws.kms'
 include('lib')
