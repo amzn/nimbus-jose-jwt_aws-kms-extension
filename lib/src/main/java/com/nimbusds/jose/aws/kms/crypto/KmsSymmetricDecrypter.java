@@ -89,15 +89,16 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
 
         critPolicy.ensureHeaderPasses(header);
 
-        DecryptResult decryptResult = generateDecryptResult(header.getKeyID(),
-                header.getCustomParam(KmsSymmetricCryptoProvider.ENCRYPTION_CONTEXT_HEADER),
+        DecryptResult decryptResult = generateDecryptResult(
+                header.getKeyID(),
+                (Map) header.getCustomParam(KmsSymmetricCryptoProvider.ENCRYPTION_CONTEXT_HEADER),
                 encryptedKey);
 
         final SecretKey cek = new SecretKeySpec(decryptResult.getPlaintext().array(), header.getAlgorithm().toString());
         return ContentCryptoProvider.decrypt(header, encryptedKey, iv, cipherText, authTag, cek, getJCAContext());
     }
 
-    private DecryptResult generateDecryptResult(String keyId, Object encryptionContext, Base64URL encryptedKey)
+    private DecryptResult generateDecryptResult(String keyId, Map<String, String> encryptionContext, Base64URL encryptedKey)
             throws JOSEException {
         try {
             return kms.decrypt(buildDecryptRequest(keyId, encryptionContext, encryptedKey));
@@ -110,9 +111,9 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
         }
     }
 
-    private DecryptRequest buildDecryptRequest(String keyId, Object encryptionContext, Base64URL encryptedKey) {
+    private DecryptRequest buildDecryptRequest(String keyId, Map<String, String> encryptionContext, Base64URL encryptedKey) {
         return new DecryptRequest()
-                .withEncryptionContext(Map.of(ENCRYPTION_CONTEXT_HEADER, encryptionContext.toString()))
+                .withEncryptionContext(encryptionContext)
                 .withKeyId(keyId)
                 .withCiphertextBlob(ByteBuffer.wrap(encryptedKey.decode()));
     }

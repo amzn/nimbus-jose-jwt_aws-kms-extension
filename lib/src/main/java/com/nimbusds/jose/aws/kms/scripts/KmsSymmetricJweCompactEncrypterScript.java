@@ -102,7 +102,7 @@ public class KmsSymmetricJweCompactEncrypterScript {
     private JWEObject encrypt(
             final JWEAlgorithm alg, final EncryptionMethod enc, final String kid, final String payload)
             throws Exception {
-        var jweEncrypter = new KmsSymmetricEncrypter(AWSKMSClientBuilder.defaultClient(), kid, Map.of("a", "1", "b", "2"));
+        var jweEncrypter = new KmsSymmetricEncrypter(AWSKMSClientBuilder.defaultClient(), kid);
         var jweObject = new JWEObject(new JWEHeader.Builder(alg, enc).keyID(kid).build(), new Payload(payload));
         jweObject.encrypt(jweEncrypter);
         return jweObject;

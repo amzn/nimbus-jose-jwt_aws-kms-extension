@@ -52,3 +52,21 @@ task kmsSymmetricJWEEncrypt(type: JavaExec) {
     }
     args = arguments
 }
+
+task kmsSymmetricJWEDecrypt(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsSymmetricJweCompactDecrypterScript'
+
+    def arguments = []
+    project.getProperties().forEach { prop, val ->
+        if (['jweToken', 'help'].contains(prop)) {
+            arguments.add("--$prop")
+            if (val) {
+                arguments.add(val)
+            }
+        }
+    }
+    args = arguments
+}
