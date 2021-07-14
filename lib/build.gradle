@@ -35,22 +35,24 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-task kmsSymmetricJWEEncrypt(type: JavaExec) {
-    group = 'Execution'
-    description = 'Run the main class with JavaExecTask'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsSymmetricJweCompactEncrypterScript'
-
+def static propertiesToArgumentMapper(properties, argumentToMap) {
     def arguments = []
-    project.getProperties().forEach { prop, val ->
-        if (['alg', 'enc', 'kid', 'payload', 'help'].contains(prop)) {
+    properties.forEach { prop, val ->
+        if (argumentToMap.contains(prop)) {
             arguments.add("--$prop")
             if (val) {
                 arguments.add(val)
             }
         }
     }
-    args = arguments
+    return arguments
+}
+task kmsSymmetricJWEEncrypt(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsSymmetricJweCompactEncrypterScript'
+    args = propertiesToArgumentMapper(project.getProperties(), ['alg', 'enc', 'kid', 'payload', 'help'])
 }
 
 task kmsSymmetricJWEDecrypt(type: JavaExec) {
@@ -58,15 +60,5 @@ task kmsSymmetricJWEDecrypt(type: JavaExec) {
     description = 'Run the main class with JavaExecTask'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsSymmetricJweCompactDecrypterScript'
-
-    def arguments = []
-    project.getProperties().forEach { prop, val ->
-        if (['jweToken', 'help'].contains(prop)) {
-            arguments.add("--$prop")
-            if (val) {
-                arguments.add(val)
-            }
-        }
-    }
-    args = arguments
+    args = propertiesToArgumentMapper(project.getProperties(), ['jweToken', 'help'])
 }
