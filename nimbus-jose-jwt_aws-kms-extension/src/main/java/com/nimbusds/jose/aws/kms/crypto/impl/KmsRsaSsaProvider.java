@@ -23,7 +23,9 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.crypto.impl.BaseJWSProvider;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
 public abstract class KmsRsaSsaProvider extends BaseJWSProvider {
 
@@ -31,6 +33,20 @@ public abstract class KmsRsaSsaProvider extends BaseJWSProvider {
      * The supported JWS algorithms by the RSA-SSA provider class.
      */
     public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS;
+
+    public static final Map<JWSAlgorithm, String> JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM = Map.ofEntries(
+            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256.toString()),
+                    MessageDigestAlgorithms.SHA_256),
+            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384.toString()),
+                    MessageDigestAlgorithms.SHA_384),
+            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512.toString()),
+                    MessageDigestAlgorithms.SHA_512),
+            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_256.toString()),
+                    MessageDigestAlgorithms.SHA_256),
+            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_384.toString()),
+                    MessageDigestAlgorithms.SHA_384),
+            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()),
+                    MessageDigestAlgorithms.SHA_512));
 
 
     static {
