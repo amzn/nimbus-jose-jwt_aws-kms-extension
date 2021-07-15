@@ -17,7 +17,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.KeyException;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
@@ -92,25 +91,29 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
 
         critPolicy.ensureHeaderPasses(header);
 
-        DecryptResult decryptResult = generateDecryptResult(
-                header.getKeyID(),
-                (Map) header.getCustomParam(KmsSymmetricCryptoProvider.ENCRYPTION_CONTEXT_HEADER),
-                encryptedKey);
+        final DecryptResult cekDecryptResult =
+                decryptCek(header.getKeyID(), getEncryptionContext(header), encryptedKey);
+        final SecretKey cek =
+                new SecretKeySpec(cekDecryptResult.getPlaintext().array(), header.getAlgorithm().toString());
 
-        final SecretKey cek = new SecretKeySpec(decryptResult.getPlaintext().array(), header.getAlgorithm().toString());
         return ContentCryptoProvider.decrypt(header, encryptedKey, iv, cipherText, authTag, cek, getJCAContext());
     }
 
-    private DecryptResult generateDecryptResult(String keyId, Map<String, String> encryptionContext, Base64URL encryptedKey)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Map <String, String> getEncryptionContext(JWEHeader header) {
+        return (Map) header.getCustomParam(KmsSymmetricCryptoProvider.ENCRYPTION_CONTEXT_HEADER);
+    }
+
+    private DecryptResult decryptCek(String keyId, Map<String, String> encryptionContext, Base64URL encryptedKey)
             throws JOSEException {
         try {
             return kms.decrypt(buildDecryptRequest(keyId, encryptionContext, encryptedKey));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
                 | KMSInvalidStateException e) {
-            throw new KeyException("An error occurred while using Key");
+            throw new JOSEException("An error occurred while using Key", e);
         } catch (DependencyTimeoutException | InvalidGrantTokenException
                 | KMSInternalException e) {
-            throw new JOSEException("A temporary error was thrown from KMS.");
+            throw new JOSEException("A temporary error was thrown from KMS.", e);
         }
     }
 

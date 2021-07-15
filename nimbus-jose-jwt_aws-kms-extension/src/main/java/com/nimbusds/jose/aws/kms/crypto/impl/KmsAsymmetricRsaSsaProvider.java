@@ -18,16 +18,46 @@
 package com.nimbusds.jose.aws.kms.crypto.impl;
 
 
+import com.amazonaws.services.kms.AWSKMS;
+import com.amazonaws.services.kms.model.MessageType;
 import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.impl.BaseJWSProvider;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
 public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
+
+    @NonNull
+    @Getter
+    private final AWSKMS kms;
+
+    /**
+     * KMS Private key ID (it can be a key ID, key ARN, key alias or key alias ARN)
+     */
+    @NonNull
+    @Getter
+    private final String privateKeyId;
+
+    /**
+     * KMS Message Type.
+     */
+    @NonNull
+    @Getter
+    private final MessageType messageType;
 
     /**
      * The supported JWS algorithms by the RSA-SSA provider class.
@@ -60,12 +90,35 @@ public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
         SUPPORTED_ALGORITHMS = Collections.unmodifiableSet(algs);
     }
 
-
-    /**
-     * Creates a new RSASSA provider.
-     */
-    protected KmsAsymmetricRsaSsaProvider() {
-
+    protected KmsAsymmetricRsaSsaProvider(
+            @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
         super(SUPPORTED_ALGORITHMS);
+        this.kms = kms;
+        this.privateKeyId = privateKeyId;
+        this.messageType = messageType;
+    }
+
+    protected ByteBuffer getMessage(final JWSHeader header, final byte[] payloadBytes) throws JOSEException {
+        final var alg = header.getAlgorithm();
+        final var payload = new Payload(payloadBytes);
+        var message = String
+                .format("%s.%s", header.toBase64URL(), payload.toBase64URL())
+                .getBytes(StandardCharsets.US_ASCII);
+
+        String messageDigestAlgorithm = Optional.ofNullable(JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(alg))
+                .orElseThrow(() -> new JOSEException(String.format("No algorithm exist for %s in map: %s",
+                        alg, JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM)));
+
+        if (messageType == MessageType.DIGEST) {
+            MessageDigest messageDigestProvider;
+            try {
+                messageDigestProvider = MessageDigest.getInstance(messageDigestAlgorithm);
+            } catch (NoSuchAlgorithmException e) {
+                throw new JOSEException("Invalid message digest algorithm.", e);
+            }
+            message = messageDigestProvider.digest(message);
+        }
+
+        return ByteBuffer.wrap(message);
     }
 }

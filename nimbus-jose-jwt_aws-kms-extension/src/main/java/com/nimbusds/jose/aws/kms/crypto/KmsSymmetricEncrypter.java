@@ -89,10 +89,10 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
             return kms.generateDataKey(buildGenerateDataKeyRequest(keyId, encryptionMethod));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
                 | KMSInvalidStateException e) {
-            throw new KeyException("An error occurred while using Key");
+            throw new JOSEException("An error occurred while using Key", e);
         } catch (DependencyTimeoutException | InvalidGrantTokenException
                 | KMSInternalException e) {
-            throw new JOSEException("A temporary error was thrown from KMS.");
+            throw new JOSEException("A temporary error was thrown from KMS.", e);
         }
     }
 

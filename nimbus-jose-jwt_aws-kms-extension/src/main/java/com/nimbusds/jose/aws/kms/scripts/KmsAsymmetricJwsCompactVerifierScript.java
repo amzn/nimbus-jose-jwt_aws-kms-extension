@@ -1,6 +1,7 @@
 package com.nimbusds.jose.aws.kms.scripts;
 
 import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.MESSAGE_TYPE;
 import static java.lang.System.out;
 
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
@@ -21,8 +22,6 @@ public class KmsAsymmetricJwsCompactVerifierScript {
      * Command to invoke this script.
      */
     private static final String COMMAND = "gradle kmsSymmetricJWSVerify";
-
-    private static final String MESSAGE_TYPE = "messageType";
 
 
     public static void main(String[] args) throws Exception {
@@ -71,7 +70,8 @@ public class KmsAsymmetricJwsCompactVerifierScript {
 
         var jwsObject = JWSObject.parse(serializedJws);
 
-        return jwsObject.verify(new KmsAsymmetricRsaSsaVerifier(AWSKMSClientBuilder.defaultClient(),
+        return jwsObject.verify(new KmsAsymmetricRsaSsaVerifier(
+                AWSKMSClientBuilder.defaultClient(),
                 jwsObject.getHeader().getKeyID(),
                 MessageType.fromValue(jwsObject.getHeader().getCustomParam(MESSAGE_TYPE).toString())));
     }

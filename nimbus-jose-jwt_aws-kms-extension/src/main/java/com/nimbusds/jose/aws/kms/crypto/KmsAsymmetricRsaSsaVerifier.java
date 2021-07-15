@@ -20,7 +20,18 @@ package com.nimbusds.jose.aws.kms.crypto;
 
 import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.services.kms.AWSKMS;
+import com.amazonaws.services.kms.model.DependencyTimeoutException;
+import com.amazonaws.services.kms.model.DisabledException;
+import com.amazonaws.services.kms.model.InvalidGrantTokenException;
+import com.amazonaws.services.kms.model.InvalidKeyUsageException;
+import com.amazonaws.services.kms.model.KMSInternalException;
+import com.amazonaws.services.kms.model.KMSInvalidSignatureException;
+import com.amazonaws.services.kms.model.KMSInvalidStateException;
+import com.amazonaws.services.kms.model.KeyUnavailableException;
 import com.amazonaws.services.kms.model.MessageType;
+import com.amazonaws.services.kms.model.NotFoundException;
+import com.amazonaws.services.kms.model.VerifyRequest;
+import com.amazonaws.services.kms.model.VerifyResult;
 import com.nimbusds.jose.CriticalHeaderParamsAware;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
@@ -28,6 +39,7 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricRsaSsaProvider;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.util.Base64URL;
+import java.nio.ByteBuffer;
 import java.util.Set;
 import lombok.NonNull;
 
@@ -39,41 +51,22 @@ public class KmsAsymmetricRsaSsaVerifier
         extends KmsAsymmetricRsaSsaProvider
         implements JWSVerifier, CriticalHeaderParamsAware {
 
-    @NonNull
-    private final AWSKMS kms;
-
-    /**
-     * KMS Private key ID (it can be a key ID, key ARN, key alias or key alias ARN)
-     */
-    @NonNull
-    private final String privateKeyId;
-
-    /**
-     * KMS Message Type.
-     */
-    @NonNull
-    private final MessageType messageType;
-
     /**
      * The critical header policy.
      */
     private final CriticalHeaderParamsDeferral critPolicy = new CriticalHeaderParamsDeferral();
 
-    public KmsAsymmetricRsaSsaVerifier(
-            @NonNull final AWSKMS kms, @NonNull String privateKeyId, @NonNull final MessageType messageType) {
 
-        this.kms = kms;
-        this.privateKeyId = privateKeyId;
-        this.messageType = messageType;
+    public KmsAsymmetricRsaSsaVerifier(
+            @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
+        super(kms, privateKeyId, messageType);
     }
+
 
     public KmsAsymmetricRsaSsaVerifier(
             @NonNull final AWSKMS kms, @NonNull String privateKeyId, @NonNull final MessageType messageType,
             @NonNull final Set<String> defCritHeaders) {
-
-        this.kms = kms;
-        this.privateKeyId = privateKeyId;
-        this.messageType = messageType;
+        super(kms, privateKeyId, messageType);
         critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
     }
 
@@ -102,6 +95,25 @@ public class KmsAsymmetricRsaSsaVerifier
             return false;
         }
 
-        return false;
+        var message = getMessage(header, signedContent);
+
+        VerifyResult verifyResult;
+        try {
+            verifyResult = getKms().verify(new VerifyRequest()
+                    .withKeyId(getPrivateKeyId())
+                    .withSigningAlgorithm(header.getAlgorithm().toString())
+                    .withMessageType(getMessageType())
+                    .withMessage(message)
+                    .withSignature(ByteBuffer.wrap(signature.decode())));
+        } catch (KMSInvalidSignatureException e) {
+            return false;
+        } catch (NotFoundException | DisabledException | KeyUnavailableException | InvalidKeyUsageException e) {
+            throw new JOSEException("An exception was thrown from KMS due to invalid key.", e);
+        } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException
+                | KMSInvalidStateException e) {
+            throw new JOSEException("A temporary exception was thrown from KMS.", e);
+        }
+
+        return verifyResult.isSignatureValid();
     }
 }

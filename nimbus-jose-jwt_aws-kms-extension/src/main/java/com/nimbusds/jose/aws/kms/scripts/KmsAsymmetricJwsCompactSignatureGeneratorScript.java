@@ -1,6 +1,7 @@
 package com.nimbusds.jose.aws.kms.scripts;
 
 import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.MESSAGE_TYPE;
 import static java.lang.System.out;
 
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
@@ -101,11 +102,15 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
 
     private JWSObject sign(final JWSAlgorithm alg, final String kid, final String payload, final String messageType)
             throws Exception {
-        var jwsSigner = new KmsAsymmetricRsaSsaSigner(
+        final var jwsSigner = new KmsAsymmetricRsaSsaSigner(
                 AWSKMSClientBuilder.defaultClient(),
                 kid,
                 MessageType.fromValue(messageType));
-        var jwsObject = new JWSObject(new JWSHeader.Builder(alg).keyID(kid).build(), new Payload(payload));
+        final var jwsHeader = new JWSHeader.Builder(alg)
+                .keyID(kid)
+                .customParam(MESSAGE_TYPE, messageType)
+                .build();
+        final var jwsObject = new JWSObject(jwsHeader, new Payload(payload));
         jwsObject.sign(jwsSigner);
         return jwsObject;
     }

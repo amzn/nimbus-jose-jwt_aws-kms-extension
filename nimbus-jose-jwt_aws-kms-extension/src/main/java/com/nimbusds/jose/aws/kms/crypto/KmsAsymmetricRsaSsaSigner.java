@@ -34,15 +34,8 @@ import com.amazonaws.services.kms.model.SignResult;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricRsaSsaProvider;
 import com.nimbusds.jose.util.Base64URL;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Optional;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 
@@ -50,24 +43,12 @@ import lombok.NonNull;
  *
  */
 @ThreadSafe
-@AllArgsConstructor
 public class KmsAsymmetricRsaSsaSigner extends KmsAsymmetricRsaSsaProvider implements JWSSigner {
 
-    @NonNull
-    private final AWSKMS kms;
-
-    /**
-     * KMS Private key ID (it can be a key ID, key ARN, key alias or key alias ARN)
-     */
-    @NonNull
-    private final String privateKeyId;
-
-    /**
-     * KMS Message Type.
-     */
-    @NonNull
-    private final MessageType messageType;
-
+    public KmsAsymmetricRsaSsaSigner(
+            @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
+        super(kms, privateKeyId, messageType);
+    }
 
     @Override
     public Base64URL sign(final JWSHeader header, final byte[] signingInput) throws JOSEException {
@@ -75,10 +56,10 @@ public class KmsAsymmetricRsaSsaSigner extends KmsAsymmetricRsaSsaProvider imple
         final var message = getMessage(header, signingInput);
         SignResult signResult;
         try {
-            signResult = kms.sign(new SignRequest()
-                    .withKeyId(privateKeyId)
-                    .withMessageType(messageType)
-                    .withMessage(ByteBuffer.wrap(message))
+            signResult = getKms().sign(new SignRequest()
+                    .withKeyId(getPrivateKeyId())
+                    .withMessageType(getMessageType())
+                    .withMessage(message)
                     .withSigningAlgorithm(header.getAlgorithm().toString()));
         } catch (NotFoundException | DisabledException | KeyUnavailableException | InvalidKeyUsageException e) {
             throw new JOSEException("An exception was thrown from KMS due to invalid key.", e);
@@ -88,29 +69,5 @@ public class KmsAsymmetricRsaSsaSigner extends KmsAsymmetricRsaSsaProvider imple
         }
 
         return Base64URL.encode(signResult.getSignature().array());
-    }
-
-    private byte[] getMessage(final JWSHeader header, final byte[] signingInput) throws JOSEException {
-        final var alg = header.getAlgorithm();
-        final var payload = new Payload(signingInput);
-        var message = String
-                .format("%s.%s", header.toBase64URL(), payload.toBase64URL())
-                .getBytes(StandardCharsets.US_ASCII);
-
-        String messageDigestAlgorithm = Optional.ofNullable(JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(alg))
-                .orElseThrow(() -> new JOSEException(String.format("No algorithm exist for %s in map: %s",
-                        alg, JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM)));
-
-        if (messageType == MessageType.DIGEST) {
-            MessageDigest messageDigestProvider;
-            try {
-                messageDigestProvider = MessageDigest.getInstance(messageDigestAlgorithm);
-            } catch (NoSuchAlgorithmException e) {
-                throw new JOSEException("Invalid message digest algorithm.", e);
-            }
-            message = messageDigestProvider.digest(message);
-        }
-
-        return message;
     }
 }
