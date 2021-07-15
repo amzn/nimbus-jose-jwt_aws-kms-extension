@@ -53,8 +53,10 @@ def static propertiesToArgumentMapper(properties, argumentToMap) {
             }
         }
     }
+    println(arguments)
     return arguments
 }
+
 task kmsSymmetricJWEEncrypt(type: JavaExec) {
     group = 'Execution'
     description = 'Run the main class with JavaExecTask'
@@ -69,4 +71,12 @@ task kmsSymmetricJWEDecrypt(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsSymmetricJweCompactDecrypterScript'
     args = propertiesToArgumentMapper(project.getProperties(), ['jweToken', 'help'])
+}
+
+task kmsRsaSsaSigner(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsAsymmetricJwsCompactSignatureGeneratorScript'
+    args = propertiesToArgumentMapper(project.getProperties(), ['alg', 'kid', 'messageType', 'payload', 'help'])
 }

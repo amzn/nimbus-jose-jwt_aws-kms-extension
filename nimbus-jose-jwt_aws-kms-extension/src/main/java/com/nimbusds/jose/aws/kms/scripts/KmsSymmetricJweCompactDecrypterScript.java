@@ -19,7 +19,7 @@ public class KmsSymmetricJweCompactDecrypterScript {
     /**
      * Command to invoke this script.
      */
-    private static final String COMMAND = "$(brazil-bootstrap)/bin/kms-symmetric-jwe-decrypt";
+    private static final String COMMAND = "gradle kmsSymmetricJWEDecrypt";
 
     public static void main(String[] args) throws Exception {
         new KmsSymmetricJweCompactDecrypterScript().execute(args);

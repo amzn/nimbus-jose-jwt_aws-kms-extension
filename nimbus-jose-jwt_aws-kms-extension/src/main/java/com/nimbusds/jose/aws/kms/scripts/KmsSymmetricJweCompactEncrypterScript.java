@@ -24,7 +24,7 @@ public class KmsSymmetricJweCompactEncrypterScript {
     /**
      * Command to invoke this script.
      */
-    private static final String COMMAND = "$(brazil-bootstrap)/bin/kms-symmetric-jwe-encrypt";
+    private static final String COMMAND = "gradle kmsSymmetricJWSEncrypt";
 
     public static void main(String[] args) throws Exception {
         new KmsSymmetricJweCompactEncrypterScript().execute(args);
