@@ -10,6 +10,7 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.aws.kms.crypto.KmsRsaSsaSigner;
+import java.util.Arrays;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -26,6 +27,7 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
     private static final String COMMAND = "gradle kmsRsaSsaSigner";
 
     public static void main(String[] args) throws Exception {
+        out.println(Arrays.asList(args));
         new KmsAsymmetricJwsCompactSignatureGeneratorScript().execute(args);
     }
 
@@ -37,15 +39,16 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
             out.println(LINE_SEPARATOR);
             new HelpFormatter().printHelp(COMMAND, options);
             out.println(LINE_SEPARATOR);
-        } else if (
-                !(cmd.hasOption(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.ALG) && cmd.hasOption(
-                        KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.KID) && cmd.hasOption(
-                        KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.PAYLOAD))) {
-            out.printf("%1$s%2$s, %3$s and %4$s options are required. "
-                            + "Use '--%5$s' for details of these options.%1$s",
+        } else if (!(cmd.hasOption(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.ALG)
+                && cmd.hasOption(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.KID)
+                && cmd.hasOption(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.PAYLOAD)
+                && cmd.hasOption(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.MESSAGE_TYPE))) {
+            out.printf("%1$s%2$s, %3$s, %4$s, %5$s options are required. "
+                            + "Use '--%6$s' for details of these options.%1$s",
                     LINE_SEPARATOR, KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.ALG,
                     KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.KID,
                     KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.PAYLOAD,
+                    KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.MESSAGE_TYPE,
                     KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.HELP);
         } else {
             out.println(cmd.getOptionValue(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.ALG));
@@ -59,8 +62,7 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
                     cmd.getOptionValue(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.PAYLOAD),
                     cmd.getOptionValue(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.MESSAGE_TYPE));
 
-            out.printf("%1$sJWS Token:%1$s%2$s%1$s",
-                    LINE_SEPARATOR, jwsObject.serialize());
+            out.printf("%1$sJWS Token:%1$s%2$s%1$s", LINE_SEPARATOR, jwsObject.serialize());
         }
     }
 
@@ -72,10 +74,12 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
                 .desc("Print this help message.")
                 .build());
         options.addOption(Option.builder()
+                .hasArg()
                 .longOpt(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.ALG)
                 .desc("JWS signature generation algorithm")
                 .build());
         options.addOption(Option.builder()
+                .hasArg()
                 .longOpt(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.KID)
                 .desc("Id of the key, which should used for signature generation."
                         + " Pass a KMS CMK ARN or alias ARN."
@@ -86,11 +90,13 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
                         + "#cli-configure-files-where")
                 .build());
         options.addOption(Option.builder()
+                .hasArg()
                 .longOpt(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.MESSAGE_TYPE)
                 .desc("Type Of message can be Digest or raw" +
                         "https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html#API_Sign_RequestSyntax")
                 .build());
         options.addOption(Option.builder()
+                .hasArg()
                 .longOpt(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.PAYLOAD)
                 .desc("Payload to for signature generation.")
                 .build());

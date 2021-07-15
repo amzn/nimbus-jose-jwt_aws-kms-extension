@@ -53,7 +53,6 @@ def static propertiesToArgumentMapper(properties, argumentToMap) {
             }
         }
     }
-    println(arguments)
     return arguments
 }
 
