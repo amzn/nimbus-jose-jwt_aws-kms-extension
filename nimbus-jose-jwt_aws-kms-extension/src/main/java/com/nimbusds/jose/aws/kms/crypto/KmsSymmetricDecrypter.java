@@ -1,5 +1,6 @@
 package com.nimbusds.jose.aws.kms.crypto;
 
+import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.DecryptRequest;
 import com.amazonaws.services.kms.model.DecryptResult;
@@ -17,6 +18,7 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.KeyException;
+import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
@@ -28,6 +30,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.NonNull;
 
+@ThreadSafe
 public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements JWEDecrypter,
         CriticalHeaderParamsAware {
 

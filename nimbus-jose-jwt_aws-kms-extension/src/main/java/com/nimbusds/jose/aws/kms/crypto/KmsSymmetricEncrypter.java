@@ -1,5 +1,6 @@
 package com.nimbusds.jose.aws.kms.crypto;
 
+import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.DependencyTimeoutException;
 import com.amazonaws.services.kms.model.DisabledException;
@@ -18,6 +19,7 @@ import com.nimbusds.jose.JWECryptoParts;
 import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.KeyException;
+import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.util.Base64URL;
@@ -28,6 +30,7 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
+@ThreadSafe
 @AllArgsConstructor
 public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements JWEEncrypter {
 

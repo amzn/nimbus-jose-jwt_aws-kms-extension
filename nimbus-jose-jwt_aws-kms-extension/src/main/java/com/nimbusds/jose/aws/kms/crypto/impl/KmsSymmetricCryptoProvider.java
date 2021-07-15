@@ -1,4 +1,4 @@
-package com.nimbusds.jose.aws.kms.crypto;
+package com.nimbusds.jose.aws.kms.crypto.impl;
 
 import com.amazonaws.services.kms.model.DataKeySpec;
 import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
