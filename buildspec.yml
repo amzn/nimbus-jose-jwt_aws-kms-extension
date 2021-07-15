@@ -20,4 +20,4 @@ phases:
       - echo "Build completed on `date`"
 artifacts:
   files:
-    - target/nimbus-jose-jwt_aws-kms-extension-1.0.0.jar
+    - nimbus-jose-jwt_aws-kms-extension/build/libs/nimbus-jose-jwt_aws-kms-extension-1.0.0.jar

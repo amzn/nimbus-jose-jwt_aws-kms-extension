@@ -5,7 +5,6 @@
  * For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle
  * User Manual available at https://docs.gradle.org/7.1.1/userguide/building_java_projects.html
  */
-
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
@@ -30,9 +29,18 @@ dependencies {
     implementation 'commons-cli:commons-cli:1.4'
 }
 
+version = '1.0.0'
+
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': project.version)
+    }
 }
 
 def static propertiesToArgumentMapper(properties, argumentToMap) {
