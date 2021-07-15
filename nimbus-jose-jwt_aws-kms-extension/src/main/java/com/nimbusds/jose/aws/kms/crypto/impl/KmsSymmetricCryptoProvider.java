@@ -1,7 +1,9 @@
 package com.nimbusds.jose.aws.kms.crypto.impl;
 
+import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.DataKeySpec;
 import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
+import com.google.common.collect.ImmutableMap;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
@@ -10,6 +12,8 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import lombok.NonNull;
 
 public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
 
@@ -43,10 +47,28 @@ public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
                 Map.entry(EncryptionMethod.A128CBC_HS256, DataKeySpec.AES_128));
     }
 
-    /**
-     * Creates a new AES encryption / decryption provider.
-     */
-    protected KmsSymmetricCryptoProvider() {
+    @NonNull
+    @Getter
+    private final AWSKMS kms;
+
+    @NonNull
+    @Getter
+    private final String keyId;
+
+    @Getter
+    private final Map<String, String> encryptionContext;
+
+    protected KmsSymmetricCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId) {
         super(SUPPORTED_ALGORITHMS, ContentCryptoProvider.SUPPORTED_ENCRYPTION_METHODS);
+        this.kms = kms;
+        this.keyId = keyId;
+        this.encryptionContext = null;
+    }
+
+    protected KmsSymmetricCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId, @NonNull final Map<String, String> encryptionContext) {
+        super(SUPPORTED_ALGORITHMS, ContentCryptoProvider.SUPPORTED_ENCRYPTION_METHODS);
+        this.kms = kms;
+        this.keyId = keyId;
+        this.encryptionContext = ImmutableMap.copyOf(encryptionContext);
     }
 }

@@ -4,8 +4,11 @@ import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
 import static java.lang.System.out;
 
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
+import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.aws.kms.crypto.KmsSymmetricDecrypter;
+import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
+import java.util.Map;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -60,11 +63,21 @@ public class KmsSymmetricJweCompactDecrypterScript {
         return options;
     }
 
+
+//    @SuppressWarnings({"unchecked", "rawtypes"})
+//    private Map<String, String> getEncryptionContext(JWEHeader header) {
+//        return (Map) header.getCustomParam(KmsSymmetricCryptoProvider.ENCRYPTION_CONTEXT_HEADER);
+//    }
+
+
     private JWEObject decrypt(String serializedJwe)
             throws Exception {
 
         var jweObject = JWEObject.parse(serializedJwe);
-        jweObject.decrypt(new KmsSymmetricDecrypter(AWSKMSClientBuilder.defaultClient()));
+        var jweHeader = jweObject.getHeader();
+        jweObject.decrypt(new KmsSymmetricDecrypter(
+                AWSKMSClientBuilder.defaultClient(),
+                jweHeader.getKeyID()));
 
         return jweObject;
     }

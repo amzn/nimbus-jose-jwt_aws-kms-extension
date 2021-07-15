@@ -31,21 +31,14 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 @ThreadSafe
-@AllArgsConstructor
 public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements JWEEncrypter {
 
-    @NonNull
-    private final AWSKMS kms;
+    public KmsSymmetricEncrypter(@NonNull final AWSKMS kms, @NonNull final String keyId) {
+        super(kms, keyId);
+    }
 
-    @NonNull
-    private final String keyId;
-
-    private final Map<String, String> encryptionContext;
-
-    public KmsSymmetricEncrypter(final AWSKMS kms, final String keyId) {
-        this.kms = kms;
-        this.keyId = keyId;
-        this.encryptionContext = null;
+    public KmsSymmetricEncrypter(@NonNull final AWSKMS kms, @NonNull final String keyId, @NonNull final Map<String, String> encryptionContext) {
+        super(kms, keyId, encryptionContext);
     }
 
     @Override
@@ -68,13 +61,13 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
         final Base64URL encryptedKey; // The second JWE part
 
         // Generate and encrypt the CEK according to the enc method
-        GenerateDataKeyResult generateDataKeyResult = generateDataKey(keyId, enc);
+        GenerateDataKeyResult generateDataKeyResult = generateDataKey(getKeyId(), enc);
         final SecretKey cek = new SecretKeySpec(generateDataKeyResult.getPlaintext().array(), alg.toString());
 
         encryptedKey = Base64URL.encode(generateDataKeyResult.getCiphertextBlob().array());
-        if (Objects.nonNull(encryptionContext)) {
+        if (Objects.nonNull(getEncryptionContext())) {
             updatedHeader = new JWEHeader.Builder(header)
-                    .customParams(Map.of(ENCRYPTION_CONTEXT_HEADER, encryptionContext))
+                    .customParams(Map.of(ENCRYPTION_CONTEXT_HEADER, getEncryptionContext()))
                     .build();
         } else {
             updatedHeader = header; // simply copy ref
@@ -86,7 +79,7 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
     private GenerateDataKeyResult generateDataKey(String keyId, EncryptionMethod encryptionMethod)
             throws JOSEException {
         try {
-            return kms.generateDataKey(buildGenerateDataKeyRequest(keyId, encryptionMethod));
+            return getKms().generateDataKey(buildGenerateDataKeyRequest(keyId, encryptionMethod));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
                 | KMSInvalidStateException e) {
             throw new JOSEException("An error occurred while using Key", e);
@@ -100,7 +93,7 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
         GenerateDataKeyRequest generateDataKeyRequest = new GenerateDataKeyRequest();
         generateDataKeyRequest.setKeyId(keyId);
         generateDataKeyRequest.setKeySpec(ENCRYPTION_METHOD_TO_DATA_KEY_SPEC_MAP.get(encryptionMethod));
-        generateDataKeyRequest.setEncryptionContext(encryptionContext);
+        generateDataKeyRequest.setEncryptionContext(getEncryptionContext());
         return generateDataKeyRequest;
     }
 }

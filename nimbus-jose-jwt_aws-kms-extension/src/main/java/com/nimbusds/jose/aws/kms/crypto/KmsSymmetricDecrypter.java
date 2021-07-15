@@ -33,21 +33,33 @@ import lombok.NonNull;
 public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements JWEDecrypter,
         CriticalHeaderParamsAware {
 
-    @NonNull
-    private final AWSKMS kms;
     /**
      * The critical header policy.
      */
     private final CriticalHeaderParamsDeferral critPolicy = new CriticalHeaderParamsDeferral();
 
-    public KmsSymmetricDecrypter(final AWSKMS kms) {
-        this(kms, null);
+
+    public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
+            @NonNull final Map<String, String> encryptionContext) {
+        super(kms, keyId, encryptionContext);
     }
 
-    public KmsSymmetricDecrypter(final AWSKMS kms, final Set<String> defCritHeaders) {
 
-        super();
-        this.kms = kms;
+    public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId) {
+        super(kms, keyId);
+    }
+
+
+    public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
+            @NonNull final Set<String> defCritHeaders) {
+        super(kms, keyId);
+        critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
+    }
+
+
+    public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
+            @NonNull final Map<String, String> encryptionContext, @NonNull final Set<String> defCritHeaders) {
+        super(kms, keyId, encryptionContext);
         critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
     }
 
@@ -92,22 +104,17 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
         critPolicy.ensureHeaderPasses(header);
 
         final DecryptResult cekDecryptResult =
-                decryptCek(header.getKeyID(), getEncryptionContext(header), encryptedKey);
+                decryptCek(getKeyId(), getEncryptionContext(), encryptedKey);
         final SecretKey cek =
                 new SecretKeySpec(cekDecryptResult.getPlaintext().array(), header.getAlgorithm().toString());
 
         return ContentCryptoProvider.decrypt(header, encryptedKey, iv, cipherText, authTag, cek, getJCAContext());
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private Map <String, String> getEncryptionContext(JWEHeader header) {
-        return (Map) header.getCustomParam(KmsSymmetricCryptoProvider.ENCRYPTION_CONTEXT_HEADER);
-    }
-
     private DecryptResult decryptCek(String keyId, Map<String, String> encryptionContext, Base64URL encryptedKey)
             throws JOSEException {
         try {
-            return kms.decrypt(buildDecryptRequest(keyId, encryptionContext, encryptedKey));
+            return getKms().decrypt(buildDecryptRequest(keyId, encryptionContext, encryptedKey));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
                 | KMSInvalidStateException e) {
             throw new JOSEException("An error occurred while using Key", e);
@@ -117,7 +124,8 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
         }
     }
 
-    private DecryptRequest buildDecryptRequest(String keyId, Map<String, String> encryptionContext, Base64URL encryptedKey) {
+    private DecryptRequest buildDecryptRequest(String keyId, Map<String, String> encryptionContext,
+            Base64URL encryptedKey) {
         return new DecryptRequest()
                 .withEncryptionContext(encryptionContext)
                 .withKeyId(keyId)
