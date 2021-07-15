@@ -35,7 +35,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.aws.kms.crypto.impl.KmsRsaSsaProvider;
+import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricRsaSsaProvider;
 import com.nimbusds.jose.util.Base64URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -51,7 +51,7 @@ import lombok.NonNull;
  */
 @ThreadSafe
 @AllArgsConstructor
-public class KmsRsaSsaSigner extends KmsRsaSsaProvider implements JWSSigner {
+public class KmsAsymmetricRsaSsaSigner extends KmsAsymmetricRsaSsaProvider implements JWSSigner {
 
     @NonNull
     private final AWSKMS kms;

@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
-public abstract class KmsRsaSsaProvider extends BaseJWSProvider {
+public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
 
     /**
      * The supported JWS algorithms by the RSA-SSA provider class.
@@ -64,7 +64,7 @@ public abstract class KmsRsaSsaProvider extends BaseJWSProvider {
     /**
      * Creates a new RSASSA provider.
      */
-    protected KmsRsaSsaProvider() {
+    protected KmsAsymmetricRsaSsaProvider() {
 
         super(SUPPORTED_ALGORITHMS);
     }
