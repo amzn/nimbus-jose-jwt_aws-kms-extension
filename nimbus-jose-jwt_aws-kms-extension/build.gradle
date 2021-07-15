@@ -79,3 +79,11 @@ task kmsRsaSsaSigner(type: JavaExec) {
     mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsAsymmetricJwsCompactSignatureGeneratorScript'
     args = propertiesToArgumentMapper(project.getProperties(), ['alg', 'kid', 'messageType', 'payload', 'help'])
 }
+
+task kmsRsaSsaVerify(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsAsymmetricJwsCompactVerifierScript'
+    args = propertiesToArgumentMapper(project.getProperties(), ['jwsToken', 'help'])
+}
