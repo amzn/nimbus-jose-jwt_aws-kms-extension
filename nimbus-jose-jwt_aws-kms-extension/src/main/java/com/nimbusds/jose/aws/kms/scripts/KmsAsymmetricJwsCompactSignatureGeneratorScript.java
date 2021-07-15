@@ -27,7 +27,6 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
     private static final String COMMAND = "gradle kmsRsaSsaSigner";
 
     public static void main(String[] args) throws Exception {
-        out.println(Arrays.asList(args));
         new KmsAsymmetricJwsCompactSignatureGeneratorScript().execute(args);
     }
 
@@ -51,10 +50,6 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
                     KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.MESSAGE_TYPE,
                     KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.HELP);
         } else {
-            out.println(cmd.getOptionValue(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.ALG));
-            out.println(cmd.getOptionValue(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.PAYLOAD));
-            out.println(cmd.getOptionValue(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.MESSAGE_TYPE));
-            out.println(cmd.getOptionValue(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.KID));
             var jwsObject = sign(
                     JWSAlgorithm
                             .parse(cmd.getOptionValue(KmsAsymmetricJwsCompactSignatureGeneratorScriptOptionNames.ALG)),
