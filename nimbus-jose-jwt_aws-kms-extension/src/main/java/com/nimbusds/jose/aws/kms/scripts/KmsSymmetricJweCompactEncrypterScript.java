@@ -11,6 +11,7 @@ import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.aws.kms.crypto.KmsSymmetricEncrypter;
 import java.util.Map;
+import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;

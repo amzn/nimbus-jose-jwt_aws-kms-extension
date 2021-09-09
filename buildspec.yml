@@ -6,15 +6,11 @@ phases:
       java: corretto11
   pre_build:
     commands:
-      - mkdir -p ~/opt/gradle
-      - wget -q https://services.gradle.org/distributions/gradle-7.1.1-bin.zip -O ~/opt/gradle/gradle-7.1.1-bin.zip
-      - yes | unzip ~/opt/gradle/gradle-7.1.1-bin.zip -d ~/opt/gradle
-      - export PATH=$HOME/opt/gradle/gradle-7.1.1/bin:$PATH
-      - gradle -v
+      - . ./gradle_install.sh
   build:
     commands:
       - echo "Build started on `date`"
-      - gradle build
+      - gradle build --stacktrace
   post_build:
     commands:
       - echo "Build completed on `date`"

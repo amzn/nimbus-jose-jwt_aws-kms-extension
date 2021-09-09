@@ -21,6 +21,7 @@ package com.nimbusds.jose.aws.kms.crypto.impl;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.MessageType;
 import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
+import com.google.common.collect.ImmutableMap;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -37,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.var;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
 public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
@@ -64,19 +66,21 @@ public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
      */
     public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS;
 
-    public static final Map<JWSAlgorithm, String> JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM = Map.ofEntries(
-            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256.toString()),
-                    MessageDigestAlgorithms.SHA_256),
-            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384.toString()),
-                    MessageDigestAlgorithms.SHA_384),
-            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512.toString()),
-                    MessageDigestAlgorithms.SHA_512),
-            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_256.toString()),
-                    MessageDigestAlgorithms.SHA_256),
-            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_384.toString()),
-                    MessageDigestAlgorithms.SHA_384),
-            Map.entry(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()),
-                    MessageDigestAlgorithms.SHA_512));
+    public static final Map<JWSAlgorithm, String> JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM =
+            ImmutableMap.<JWSAlgorithm, String>builder()
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256.toString()),
+                            MessageDigestAlgorithms.SHA_256)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384.toString()),
+                            MessageDigestAlgorithms.SHA_384)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512.toString()),
+                            MessageDigestAlgorithms.SHA_512)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_256.toString()),
+                            MessageDigestAlgorithms.SHA_256)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_384.toString()),
+                            MessageDigestAlgorithms.SHA_384)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()),
+                            MessageDigestAlgorithms.SHA_512)
+                    .build();
 
 
     static {

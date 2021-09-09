@@ -12,6 +12,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRsaSsaSigner;
 import java.util.Arrays;
+import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;

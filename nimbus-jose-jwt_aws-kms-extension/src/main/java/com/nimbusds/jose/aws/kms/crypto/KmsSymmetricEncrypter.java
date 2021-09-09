@@ -1,6 +1,5 @@
 package com.nimbusds.jose.aws.kms.crypto;
 
-import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.DependencyTimeoutException;
 import com.amazonaws.services.kms.model.DisabledException;
@@ -12,22 +11,22 @@ import com.amazonaws.services.kms.model.KMSInternalException;
 import com.amazonaws.services.kms.model.KMSInvalidStateException;
 import com.amazonaws.services.kms.model.KeyUnavailableException;
 import com.amazonaws.services.kms.model.NotFoundException;
+import com.google.common.collect.ImmutableMap;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWECryptoParts;
 import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.KeyException;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.util.Base64URL;
 import java.util.Map;
 import java.util.Objects;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 @ThreadSafe
@@ -67,7 +66,7 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
         encryptedKey = Base64URL.encode(generateDataKeyResult.getCiphertextBlob().array());
         if (Objects.nonNull(getEncryptionContext())) {
             updatedHeader = new JWEHeader.Builder(header)
-                    .customParams(Map.of(ENCRYPTION_CONTEXT_HEADER, getEncryptionContext()))
+                    .customParams(ImmutableMap.of(ENCRYPTION_CONTEXT_HEADER, getEncryptionContext()))
                     .build();
         } else {
             updatedHeader = header; // simply copy ref

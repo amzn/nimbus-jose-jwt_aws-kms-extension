@@ -8,6 +8,7 @@ import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.kms.model.MessageType;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRsaSsaVerifier;
+import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;

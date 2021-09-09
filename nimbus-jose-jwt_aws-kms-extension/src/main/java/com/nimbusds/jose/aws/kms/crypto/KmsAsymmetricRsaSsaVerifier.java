@@ -18,7 +18,6 @@
 package com.nimbusds.jose.aws.kms.crypto;
 
 
-import com.amazonaws.annotation.ThreadSafe;
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.DependencyTimeoutException;
 import com.amazonaws.services.kms.model.DisabledException;
@@ -41,7 +40,9 @@ import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.util.Base64URL;
 import java.nio.ByteBuffer;
 import java.util.Set;
+import javax.annotation.concurrent.ThreadSafe;
 import lombok.NonNull;
+import lombok.var;
 
 /**
  *

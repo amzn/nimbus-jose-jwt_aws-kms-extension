@@ -9,6 +9,7 @@ import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.aws.kms.crypto.KmsSymmetricDecrypter;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import java.util.Map;
+import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
