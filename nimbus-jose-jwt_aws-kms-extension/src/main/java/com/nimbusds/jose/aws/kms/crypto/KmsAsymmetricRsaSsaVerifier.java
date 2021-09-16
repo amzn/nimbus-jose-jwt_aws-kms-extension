@@ -1,20 +1,3 @@
-/*
- * nimbus-jose-jwt
- *
- * Copyright 2012-2016, Connect2id Ltd.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
- * this file except in compliance with the License. You may obtain a copy of the
- * License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
 package com.nimbusds.jose.aws.kms.crypto;
 
 
@@ -35,6 +18,7 @@ import com.nimbusds.jose.CriticalHeaderParamsAware;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.RemoteKeySourceException;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricRsaSsaProvider;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.util.Base64URL;
@@ -87,9 +71,7 @@ public class KmsAsymmetricRsaSsaVerifier
 
 
     @Override
-    public boolean verify(final JWSHeader header,
-            final byte[] signedContent,
-            final Base64URL signature)
+    public boolean verify(final JWSHeader header, final byte[] signedContent, final Base64URL signature)
             throws JOSEException {
 
         if (!critPolicy.headerPasses(header)) {
@@ -109,7 +91,7 @@ public class KmsAsymmetricRsaSsaVerifier
         } catch (KMSInvalidSignatureException e) {
             return false;
         } catch (NotFoundException | DisabledException | KeyUnavailableException | InvalidKeyUsageException e) {
-            throw new JOSEException("An exception was thrown from KMS due to invalid key.", e);
+            throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid key.", e);
         } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException
                 | KMSInvalidStateException e) {
             throw new JOSEException("A temporary exception was thrown from KMS.", e);

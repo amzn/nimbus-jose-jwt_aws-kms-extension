@@ -31,11 +31,10 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.var;
@@ -44,27 +43,22 @@ import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
 
     @NonNull
-    @Getter
+    @Getter(AccessLevel.PROTECTED)
     private final AWSKMS kms;
 
     /**
      * KMS Private key ID (it can be a key ID, key ARN, key alias or key alias ARN)
      */
     @NonNull
-    @Getter
+    @Getter(AccessLevel.PROTECTED)
     private final String privateKeyId;
 
     /**
      * KMS Message Type.
      */
     @NonNull
-    @Getter
+    @Getter(AccessLevel.PROTECTED)
     private final MessageType messageType;
-
-    /**
-     * The supported JWS algorithms by the RSA-SSA provider class.
-     */
-    public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS;
 
     public static final Map<JWSAlgorithm, String> JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM =
             ImmutableMap.<JWSAlgorithm, String>builder()
@@ -82,17 +76,10 @@ public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
                             MessageDigestAlgorithms.SHA_512)
                     .build();
 
-
-    static {
-        Set<JWSAlgorithm> algs = new LinkedHashSet<>();
-        algs.add(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256.toString()));
-        algs.add(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384.toString()));
-        algs.add(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512.toString()));
-        algs.add(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_256.toString()));
-        algs.add(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_384.toString()));
-        algs.add(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()));
-        SUPPORTED_ALGORITHMS = Collections.unmodifiableSet(algs);
-    }
+    /**
+     * The supported JWS algorithms by the RSA-SSA provider class.
+     */
+    public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.keySet();
 
     protected KmsAsymmetricRsaSsaProvider(
             @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
@@ -110,8 +97,9 @@ public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
                 .getBytes(StandardCharsets.US_ASCII);
 
         String messageDigestAlgorithm = Optional.ofNullable(JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(alg))
-                .orElseThrow(() -> new JOSEException(String.format("No algorithm exist for %s in map: %s",
-                        alg, JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM)));
+                .orElseThrow(() -> new JOSEException(
+                        String.format("No digest algorithm exist for JWE algorithm %s in map: %s",
+                                alg, JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM)));
 
         if (messageType == MessageType.DIGEST) {
             MessageDigest messageDigestProvider;

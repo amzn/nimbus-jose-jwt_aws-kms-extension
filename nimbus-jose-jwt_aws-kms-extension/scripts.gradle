@@ -1,0 +1,44 @@
+def static propertiesToArgumentMapper(properties, argumentToMap) {
+    def arguments = []
+    properties.forEach { prop, val ->
+        if (argumentToMap.contains(prop)) {
+            arguments.add("--$prop")
+            if (val) {
+                arguments.add(val)
+            }
+        }
+    }
+    return arguments
+}
+
+task kmsSymmetricJWEEncrypt(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsSymmetricJweCompactEncrypterScript'
+    args = propertiesToArgumentMapper(project.getProperties(), ['alg', 'enc', 'kid', 'payload', 'help'])
+}
+
+task kmsSymmetricJWEDecrypt(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsSymmetricJweCompactDecrypterScript'
+    args = propertiesToArgumentMapper(project.getProperties(), ['jweToken', 'help'])
+}
+
+task kmsRsaSsaSigner(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsAsymmetricJwsCompactSignatureGeneratorScript'
+    args = propertiesToArgumentMapper(project.getProperties(), ['alg', 'kid', 'messageType', 'payload', 'help'])
+}
+
+task kmsRsaSsaVerify(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsAsymmetricJwsCompactVerifierScript'
+    args = propertiesToArgumentMapper(project.getProperties(), ['jwsToken', 'help'])
+}
