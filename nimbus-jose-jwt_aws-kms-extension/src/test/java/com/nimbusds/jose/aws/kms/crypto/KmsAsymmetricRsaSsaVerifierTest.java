@@ -22,10 +22,10 @@ import com.amazonaws.services.kms.model.NotFoundException;
 import com.amazonaws.services.kms.model.VerifyRequest;
 import com.amazonaws.services.kms.model.VerifyResult;
 import com.google.common.collect.ImmutableSet;
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.RemoteKeySourceException;
+import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.util.Base64URL;
 import java.nio.ByteBuffer;
@@ -45,7 +45,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
-@DisplayName("For KmsAsymmetricRsaSsaVerifier class,")
+@DisplayName("For KmsAsymmetricRSASSAVerifier class,")
 @ExtendWith(MockitoExtension.class)
 public class KmsAsymmetricRsaSsaVerifierTest {
 
@@ -57,7 +57,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
     private MessageType testMessageType;
     private Set<String> testCriticalHeaders;
 
-    private KmsAsymmetricRsaSsaVerifier kmsAsymmetricRsaSsaVerifier;
+    private KmsAsymmetricRSASSAVerifier kmsAsymmetricRsaSsaVerifier;
 
     @BeforeEach
     void setUp() {
@@ -69,9 +69,10 @@ public class KmsAsymmetricRsaSsaVerifierTest {
     @Nested
     @DisplayName("the getProcessedCriticalHeaderParams method,")
     class GetProcessedCriticalHeaderParams {
+
         @BeforeEach
         void beforeEach() {
-            kmsAsymmetricRsaSsaVerifier = new KmsAsymmetricRsaSsaVerifier(
+            kmsAsymmetricRsaSsaVerifier = new KmsAsymmetricRSASSAVerifier(
                     mockAwsKms, testPrivateKeyId, testMessageType);
         }
 
@@ -88,9 +89,10 @@ public class KmsAsymmetricRsaSsaVerifierTest {
     @Nested
     @DisplayName("the getDeferredCriticalHeaderParams method,")
     class GetDeferredCriticalHeaderParams {
+
         @BeforeEach
         void beforeEach() {
-            kmsAsymmetricRsaSsaVerifier = new KmsAsymmetricRsaSsaVerifier(
+            kmsAsymmetricRsaSsaVerifier = new KmsAsymmetricRSASSAVerifier(
                     mockAwsKms, testPrivateKeyId, testMessageType, testCriticalHeaders);
         }
 
@@ -145,7 +147,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
 
             @BeforeEach
             void beforeEach() {
-                kmsAsymmetricRsaSsaVerifier = spy(new KmsAsymmetricRsaSsaVerifier(
+                kmsAsymmetricRsaSsaVerifier = spy(new KmsAsymmetricRSASSAVerifier(
                         mockAwsKms, testPrivateKeyId, testMessageType));
             }
 
@@ -165,7 +167,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
 
             @BeforeEach
             void beforeEach() {
-                kmsAsymmetricRsaSsaVerifier = spy(new KmsAsymmetricRsaSsaVerifier(
+                kmsAsymmetricRsaSsaVerifier = spy(new KmsAsymmetricRSASSAVerifier(
                         mockAwsKms, testPrivateKeyId, testMessageType, testCriticalHeaders));
                 mockGetMessage();
             }
@@ -192,7 +194,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 @DisplayName("should throw RemoteKeySourceException.")
                 @ValueSource(classes = {
                         NotFoundException.class, DisabledException.class, KeyUnavailableException.class,
-                        InvalidKeyUsageException.class})
+                        InvalidKeyUsageException.class, KMSInvalidStateException.class})
                 void shouldThrowRemoteKeySourceException(Class<AWSKMSException> exceptionClass) {
                     final var mockInvalidSigningException = parameterizedBeforeEach(exceptionClass);
                     assertThatThrownBy(
@@ -222,15 +224,14 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 }
 
                 @ParameterizedTest
-                @DisplayName("should throw JOSEException.")
+                @DisplayName("should throw TemporaryJOSEException.")
                 @ValueSource(classes = {
-                        DependencyTimeoutException.class, InvalidGrantTokenException.class, KMSInternalException.class,
-                        KMSInvalidStateException.class})
+                        DependencyTimeoutException.class, InvalidGrantTokenException.class, KMSInternalException.class})
                 void shouldThrowJOSEException(Class<AWSKMSException> exceptionClass) {
                     final var mockInvalidSigningException = parameterizedBeforeEach(exceptionClass);
                     assertThatThrownBy(
                             () -> kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature))
-                            .isInstanceOf(JOSEException.class)
+                            .isInstanceOf(TemporaryJOSEException.class)
                             .hasMessage("A temporary exception was thrown from KMS.")
                             .hasCause(mockInvalidSigningException);
                 }
@@ -239,6 +240,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             @Nested
             @DisplayName("with KMSInvalidSignatureException from KMS,")
             class WithKMSInvalidSignatureException {
+
                 @Mock
                 private KMSInvalidSignatureException mockKmsInvalidSignatureException;
 
@@ -267,6 +269,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             @Nested
             @DisplayName("with invalid signature from KMS verification result,")
             class WithInvalidSignature {
+
                 @Mock
                 private VerifyResult mockVerifyResult;
 
@@ -297,6 +300,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             @Nested
             @DisplayName("with valid signature from KMS verification result,")
             class WithValidSignature {
+
                 @Mock
                 private VerifyResult mockVerifyResult;
 
@@ -324,5 +328,5 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 }
             }
         }
-   }
+    }
 }

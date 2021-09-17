@@ -117,9 +117,8 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
             return getKms().decrypt(buildDecryptRequest(keyId, encryptionContext, encryptedKey));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
                 | KMSInvalidStateException e) {
-            throw new JOSEException("An error occurred while using Key", e);
-        } catch (DependencyTimeoutException | InvalidGrantTokenException
-                | KMSInternalException e) {
+            throw new JOSEException("An exception was thrown from KMS due to invalid key.", e);
+        } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException e) {
             throw new JOSEException("A temporary error was thrown from KMS.", e);
         }
     }

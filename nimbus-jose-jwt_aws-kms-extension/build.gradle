@@ -60,13 +60,12 @@ jacocoTestCoverageVerification {
         rule {
             element = 'CLASS'
             excludes = [
-                    'com.nimbusds.jose.aws.kms.scripts.*',
                     'com.nimbusds.jose.crypto.*',
+                    'com.nimbusds.jose.aws.kms.exceptions.*',
+                    'com.nimbusds.jose.aws.kms.scripts.*',
 
                     // TODO: Remove following rule, once their test-cases are written.
-                    'com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider',
                     'com.nimbusds.jose.aws.kms.crypto.KmsSymmetricDecrypter',
-                    'com.nimbusds.jose.aws.kms.crypto.KmsSymmetricEncrypter',
             ]
             limit {
                 counter = 'BRANCH'

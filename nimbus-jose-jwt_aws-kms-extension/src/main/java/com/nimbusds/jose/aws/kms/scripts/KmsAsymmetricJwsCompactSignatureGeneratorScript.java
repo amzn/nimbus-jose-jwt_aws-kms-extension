@@ -10,8 +10,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRsaSsaSigner;
-import java.util.Arrays;
+import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRSASSASigner;
 import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -103,7 +102,7 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
 
     private JWSObject sign(final JWSAlgorithm alg, final String kid, final String payload, final String messageType)
             throws Exception {
-        final var jwsSigner = new KmsAsymmetricRsaSsaSigner(
+        final var jwsSigner = new KmsAsymmetricRSASSASigner(
                 AWSKMSClientBuilder.defaultClient(),
                 kid,
                 MessageType.fromValue(messageType));

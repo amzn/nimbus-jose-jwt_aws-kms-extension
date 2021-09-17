@@ -19,7 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import lombok.SneakyThrows;
-import lombok.var;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,9 +30,9 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@DisplayName("For KmsAsymmetricRsaSsaProvider class,")
+@DisplayName("For KmsAsymmetricRSASSAProvider class,")
 @ExtendWith(MockitoExtension.class)
-public class KmsAsymmetricRsaSsaProviderTest {
+public class KmsAsymmetricRSASSAProviderTest {
 
     private EasyRandom random;
 
@@ -42,7 +41,7 @@ public class KmsAsymmetricRsaSsaProviderTest {
     private String testPrivateKeyId;
     private MessageType testMessageType;
 
-    private KmsAsymmetricRsaSsaProvider kmsAsymmetricRsaSsaProvider;
+    private KmsAsymmetricRSASSAProvider kmsAsymmetricRsaSsaProvider;
 
     @BeforeEach
     void beforeEach() {
@@ -51,7 +50,7 @@ public class KmsAsymmetricRsaSsaProviderTest {
         testPrivateKeyId = random.nextObject(String.class);
         testMessageType = random.nextObject(MessageType.class);
 
-        kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRsaSsaProvider.class, withSettings()
+        kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRSASSAProvider.class, withSettings()
                 .useConstructor(mockAwsKms, testPrivateKeyId, testMessageType)
                 .defaultAnswer(CALLS_REAL_METHODS));
     }
@@ -85,7 +84,7 @@ public class KmsAsymmetricRsaSsaProviderTest {
                         .isInstanceOf(JOSEException.class)
                         .hasMessage(String.format("No digest algorithm exist for JWE algorithm %s in map: %s",
                                 testJwsHeader.getAlgorithm(),
-                                KmsAsymmetricRsaSsaProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM));
+                                KmsAsymmetricRSASSAProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM));
             }
         }
 
@@ -113,7 +112,7 @@ public class KmsAsymmetricRsaSsaProviderTest {
                 @BeforeEach
                 void beforeEach() {
                     testMessageType = MessageType.RAW;
-                    kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRsaSsaProvider.class, withSettings()
+                    kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRSASSAProvider.class, withSettings()
                             .useConstructor(mockAwsKms, testPrivateKeyId, testMessageType)
                             .defaultAnswer(CALLS_REAL_METHODS));
                 }
@@ -136,7 +135,7 @@ public class KmsAsymmetricRsaSsaProviderTest {
                 @BeforeEach
                 void beforeEach() {
                     testMessageType = MessageType.DIGEST;
-                    kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRsaSsaProvider.class, withSettings()
+                    kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRSASSAProvider.class, withSettings()
                             .useConstructor(mockAwsKms, testPrivateKeyId, testMessageType)
                             .defaultAnswer(CALLS_REAL_METHODS));
                 }
@@ -153,7 +152,7 @@ public class KmsAsymmetricRsaSsaProviderTest {
                     void beforeEach() {
                         mockMessageDigest
                                 .when(() -> MessageDigest.getInstance(
-                                        KmsAsymmetricRsaSsaProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(
+                                        KmsAsymmetricRSASSAProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(
                                                 testJwsHeader.getAlgorithm())))
                                 .thenThrow(mockNoSuchAlgorithmException);
                     }
@@ -183,7 +182,7 @@ public class KmsAsymmetricRsaSsaProviderTest {
                     void beforeEach() {
                         mockMessageDigest
                                 .when(() -> MessageDigest.getInstance(
-                                        KmsAsymmetricRsaSsaProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(
+                                        KmsAsymmetricRSASSAProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(
                                                 testJwsHeader.getAlgorithm())))
                                 .thenReturn(mockMessageDigestProvider);
 

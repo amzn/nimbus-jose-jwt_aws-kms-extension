@@ -17,7 +17,8 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.RemoteKeySourceException;
-import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricRsaSsaProvider;
+import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricRSASSAProvider;
+import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.util.Base64URL;
 import javax.annotation.concurrent.ThreadSafe;
 import lombok.NonNull;
@@ -28,15 +29,15 @@ import lombok.var;
  *
  */
 @ThreadSafe
-public class KmsAsymmetricRsaSsaSigner extends KmsAsymmetricRsaSsaProvider implements JWSSigner {
+public class KmsAsymmetricRSASSASigner extends KmsAsymmetricRSASSAProvider implements JWSSigner {
 
-    public KmsAsymmetricRsaSsaSigner(
+    public KmsAsymmetricRSASSASigner(
             @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
         super(kms, privateKeyId, messageType);
     }
 
     @Override
-    public Base64URL sign(final JWSHeader header, final byte[] signingInput) throws JOSEException {
+    public Base64URL sign(@NonNull final JWSHeader header, @NonNull final byte[] signingInput) throws JOSEException {
 
         final var message = getMessage(header, signingInput);
         SignResult signResult;
@@ -46,11 +47,11 @@ public class KmsAsymmetricRsaSsaSigner extends KmsAsymmetricRsaSsaProvider imple
                     .withMessageType(getMessageType())
                     .withMessage(message)
                     .withSigningAlgorithm(header.getAlgorithm().toString()));
-        } catch (NotFoundException | DisabledException | KeyUnavailableException | InvalidKeyUsageException e) {
-            throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid key.", e);
-        } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException
+        } catch (NotFoundException | DisabledException | KeyUnavailableException | InvalidKeyUsageException
                 | KMSInvalidStateException e) {
-            throw new JOSEException("A temporary exception was thrown from KMS.", e);
+            throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid key.", e);
+        } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException e) {
+            throw new TemporaryJOSEException("A temporary exception was thrown from KMS.", e);
         }
 
         return Base64URL.encode(signResult.getSignature().array());

@@ -7,7 +7,7 @@ import static java.lang.System.out;
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.kms.model.MessageType;
 import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRsaSsaVerifier;
+import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRSASSAVerifier;
 import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -71,7 +71,7 @@ public class KmsAsymmetricJwsCompactVerifierScript {
 
         var jwsObject = JWSObject.parse(serializedJws);
 
-        return jwsObject.verify(new KmsAsymmetricRsaSsaVerifier(
+        return jwsObject.verify(new KmsAsymmetricRSASSAVerifier(
                 AWSKMSClientBuilder.defaultClient(),
                 jwsObject.getHeader().getKeyID(),
                 MessageType.fromValue(jwsObject.getHeader().getCustomParam(MESSAGE_TYPE).toString())));

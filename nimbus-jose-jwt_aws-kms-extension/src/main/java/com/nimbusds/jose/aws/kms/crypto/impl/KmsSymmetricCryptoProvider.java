@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 
@@ -48,28 +49,25 @@ public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
     }
 
     @NonNull
-    @Getter
+    @Getter(AccessLevel.PROTECTED)
     private final AWSKMS kms;
 
     @NonNull
-    @Getter
+    @Getter(AccessLevel.PROTECTED)
     private final String keyId;
 
-    @Getter
-    private final Map<String, String> encryptionContext;
+    @Getter(AccessLevel.PROTECTED)
+    private Map<String, String> encryptionContext;
 
     protected KmsSymmetricCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId) {
         super(SUPPORTED_ALGORITHMS, ContentCryptoProvider.SUPPORTED_ENCRYPTION_METHODS);
         this.kms = kms;
         this.keyId = keyId;
-        this.encryptionContext = null;
     }
 
     protected KmsSymmetricCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId,
             @NonNull final Map<String, String> encryptionContext) {
-        super(SUPPORTED_ALGORITHMS, ContentCryptoProvider.SUPPORTED_ENCRYPTION_METHODS);
-        this.kms = kms;
-        this.keyId = keyId;
+        this(kms, keyId);
         this.encryptionContext = ImmutableMap.copyOf(encryptionContext);
     }
 }

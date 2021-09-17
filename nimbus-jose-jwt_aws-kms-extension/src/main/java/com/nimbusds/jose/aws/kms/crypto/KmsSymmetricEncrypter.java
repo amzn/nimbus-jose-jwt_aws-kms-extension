@@ -18,7 +18,9 @@ import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWECryptoParts;
 import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.RemoteKeySourceException;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
+import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.util.Base64URL;
@@ -36,12 +38,13 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
         super(kms, keyId);
     }
 
-    public KmsSymmetricEncrypter(@NonNull final AWSKMS kms, @NonNull final String keyId, @NonNull final Map<String, String> encryptionContext) {
+    public KmsSymmetricEncrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
+            @NonNull final Map<String, String> encryptionContext) {
         super(kms, keyId, encryptionContext);
     }
 
     @Override
-    public JWECryptoParts encrypt(final JWEHeader header, final byte[] clearText)
+    public JWECryptoParts encrypt(@NonNull final JWEHeader header, @NonNull final byte[] clearText)
             throws JOSEException {
 
         final JWEAlgorithm alg = header.getAlgorithm();
@@ -78,21 +81,15 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
     private GenerateDataKeyResult generateDataKey(String keyId, EncryptionMethod encryptionMethod)
             throws JOSEException {
         try {
-            return getKms().generateDataKey(buildGenerateDataKeyRequest(keyId, encryptionMethod));
+            return getKms().generateDataKey(new GenerateDataKeyRequest()
+                    .withKeyId(keyId)
+                    .withKeySpec(ENCRYPTION_METHOD_TO_DATA_KEY_SPEC_MAP.get(encryptionMethod))
+                    .withEncryptionContext(getEncryptionContext()));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
                 | KMSInvalidStateException e) {
-            throw new JOSEException("An error occurred while using Key", e);
-        } catch (DependencyTimeoutException | InvalidGrantTokenException
-                | KMSInternalException e) {
-            throw new JOSEException("A temporary error was thrown from KMS.", e);
+            throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid key.", e);
+        } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException e) {
+            throw new TemporaryJOSEException("A temporary error was thrown from KMS.", e);
         }
-    }
-
-    private GenerateDataKeyRequest buildGenerateDataKeyRequest(String keyId, EncryptionMethod encryptionMethod) {
-        GenerateDataKeyRequest generateDataKeyRequest = new GenerateDataKeyRequest();
-        generateDataKeyRequest.setKeyId(keyId);
-        generateDataKeyRequest.setKeySpec(ENCRYPTION_METHOD_TO_DATA_KEY_SPEC_MAP.get(encryptionMethod));
-        generateDataKeyRequest.setEncryptionContext(getEncryptionContext());
-        return generateDataKeyRequest;
     }
 }

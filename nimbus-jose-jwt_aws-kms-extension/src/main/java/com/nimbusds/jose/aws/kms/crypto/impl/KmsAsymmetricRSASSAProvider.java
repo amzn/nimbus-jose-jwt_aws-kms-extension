@@ -40,7 +40,7 @@ import lombok.NonNull;
 import lombok.var;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
-public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
+public abstract class KmsAsymmetricRSASSAProvider extends BaseJWSProvider {
 
     @NonNull
     @Getter(AccessLevel.PROTECTED)
@@ -81,7 +81,7 @@ public abstract class KmsAsymmetricRsaSsaProvider extends BaseJWSProvider {
      */
     public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.keySet();
 
-    protected KmsAsymmetricRsaSsaProvider(
+    protected KmsAsymmetricRSASSAProvider(
             @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
         super(SUPPORTED_ALGORITHMS);
         this.kms = kms;
