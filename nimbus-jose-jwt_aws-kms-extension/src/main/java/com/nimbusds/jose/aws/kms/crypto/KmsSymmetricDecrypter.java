@@ -12,11 +12,14 @@ import com.amazonaws.services.kms.model.KMSInvalidStateException;
 import com.amazonaws.services.kms.model.KeyUnavailableException;
 import com.amazonaws.services.kms.model.NotFoundException;
 import com.nimbusds.jose.CriticalHeaderParamsAware;
+import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.RemoteKeySourceException;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
+import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
@@ -38,69 +41,47 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
      */
     private final CriticalHeaderParamsDeferral critPolicy = new CriticalHeaderParamsDeferral();
 
-
     public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
             @NonNull final Map<String, String> encryptionContext) {
         super(kms, keyId, encryptionContext);
     }
 
-
     public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId) {
         super(kms, keyId);
     }
 
-
     public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
             @NonNull final Set<String> defCritHeaders) {
-        super(kms, keyId);
+        this(kms, keyId);
         critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
     }
-
 
     public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
             @NonNull final Map<String, String> encryptionContext, @NonNull final Set<String> defCritHeaders) {
-        super(kms, keyId, encryptionContext);
+        this(kms, keyId, encryptionContext);
         critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
     }
 
-
     @Override
     public Set<String> getProcessedCriticalHeaderParams() {
-
         return critPolicy.getProcessedCriticalHeaderParams();
     }
-
 
     @Override
     public Set<String> getDeferredCriticalHeaderParams() {
-
-        return critPolicy.getProcessedCriticalHeaderParams();
+        return critPolicy.getDeferredCriticalHeaderParams();
     }
 
-
     @Override
-    public byte[] decrypt(final JWEHeader header,
-            final Base64URL encryptedKey,
-            final Base64URL iv,
-            final Base64URL cipherText,
-            final Base64URL authTag)
+    public byte[] decrypt(
+            @NonNull final JWEHeader header,
+            @NonNull final Base64URL encryptedKey,
+            @NonNull final Base64URL iv,
+            @NonNull final Base64URL cipherText,
+            @NonNull final Base64URL authTag)
             throws JOSEException {
 
-        // Validate required JWE parts
-        if (encryptedKey == null) {
-            throw new JOSEException("Missing JWE encrypted key");
-        }
-
-        if (iv == null) {
-            throw new JOSEException("Missing JWE initialization vector (IV)");
-        }
-
-        final JWEAlgorithm alg = header.getAlgorithm();
-
-        if (!SUPPORTED_ALGORITHMS.contains(alg)) {
-            throw new JOSEException(AlgorithmSupportMessage.unsupportedJWEAlgorithm(alg, SUPPORTED_ALGORITHMS));
-        }
-
+        validateJWEHeader(header);
         critPolicy.ensureHeaderPasses(header);
 
         final DecryptResult cekDecryptResult =
@@ -114,21 +95,15 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
     private DecryptResult decryptCek(String keyId, Map<String, String> encryptionContext, Base64URL encryptedKey)
             throws JOSEException {
         try {
-            return getKms().decrypt(buildDecryptRequest(keyId, encryptionContext, encryptedKey));
+            return getKms().decrypt(new DecryptRequest()
+                    .withEncryptionContext(encryptionContext)
+                    .withKeyId(keyId)
+                    .withCiphertextBlob(ByteBuffer.wrap(encryptedKey.decode())));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
                 | KMSInvalidStateException e) {
-            throw new JOSEException("An exception was thrown from KMS due to invalid key.", e);
+            throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid key.", e);
         } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException e) {
-            throw new JOSEException("A temporary error was thrown from KMS.", e);
+            throw new TemporaryJOSEException("A temporary error was thrown from KMS.", e);
         }
     }
-
-    private DecryptRequest buildDecryptRequest(String keyId, Map<String, String> encryptionContext,
-            Base64URL encryptedKey) {
-        return new DecryptRequest()
-                .withEncryptionContext(encryptionContext)
-                .withKeyId(keyId)
-                .withCiphertextBlob(ByteBuffer.wrap(encryptedKey.decode()));
-    }
-
 }

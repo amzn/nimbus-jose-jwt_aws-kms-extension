@@ -63,12 +63,13 @@ jacocoTestCoverageVerification {
                     'com.nimbusds.jose.crypto.*',
                     'com.nimbusds.jose.aws.kms.exceptions.*',
                     'com.nimbusds.jose.aws.kms.scripts.*',
-
-                    // TODO: Remove following rule, once their test-cases are written.
-                    'com.nimbusds.jose.aws.kms.crypto.KmsSymmetricDecrypter',
             ]
             limit {
                 counter = 'BRANCH'
+                minimum = 1.00
+            }
+            limit {
+                counter = 'LINE'
                 minimum = 1.00
             }
         }

@@ -47,24 +47,15 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
     public JWECryptoParts encrypt(@NonNull final JWEHeader header, @NonNull final byte[] clearText)
             throws JOSEException {
 
-        final JWEAlgorithm alg = header.getAlgorithm();
-        final EncryptionMethod enc = header.getEncryptionMethod();
-
-        if (!SUPPORTED_ALGORITHMS.contains(alg)) {
-            throw new JOSEException(AlgorithmSupportMessage.unsupportedJWEAlgorithm(alg, SUPPORTED_ALGORITHMS));
-        }
-
-        if (!SUPPORTED_ENCRYPTION_METHODS.contains(enc)) {
-            throw new JOSEException(
-                    AlgorithmSupportMessage.unsupportedEncryptionMethod(enc, SUPPORTED_ENCRYPTION_METHODS));
-        }
+        validateJWEHeader(header);
 
         final JWEHeader updatedHeader; // We need to work on the header
         final Base64URL encryptedKey; // The second JWE part
 
         // Generate and encrypt the CEK according to the enc method
-        GenerateDataKeyResult generateDataKeyResult = generateDataKey(getKeyId(), enc);
-        final SecretKey cek = new SecretKeySpec(generateDataKeyResult.getPlaintext().array(), alg.toString());
+        GenerateDataKeyResult generateDataKeyResult = generateDataKey(getKeyId(), header.getEncryptionMethod());
+        final SecretKey cek = new SecretKeySpec(
+                generateDataKeyResult.getPlaintext().array(), header.getAlgorithm().toString());
 
         encryptedKey = Base64URL.encode(generateDataKeyResult.getCiphertextBlob().array());
         if (Objects.nonNull(getEncryptionContext())) {

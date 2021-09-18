@@ -5,7 +5,10 @@ import com.amazonaws.services.kms.model.DataKeySpec;
 import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
 import com.google.common.collect.ImmutableMap;
 import com.nimbusds.jose.EncryptionMethod;
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
+import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.crypto.impl.PublicBaseJWEProvider;
 import java.util.Collections;
@@ -69,5 +72,19 @@ public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
             @NonNull final Map<String, String> encryptionContext) {
         this(kms, keyId);
         this.encryptionContext = ImmutableMap.copyOf(encryptionContext);
+    }
+
+    protected void validateJWEHeader(@NonNull final JWEHeader header) throws JOSEException {
+        final JWEAlgorithm alg = header.getAlgorithm();
+        final EncryptionMethod enc = header.getEncryptionMethod();
+
+        if (!SUPPORTED_ALGORITHMS.contains(alg)) {
+            throw new JOSEException(AlgorithmSupportMessage.unsupportedJWEAlgorithm(alg, SUPPORTED_ALGORITHMS));
+        }
+
+        if (!SUPPORTED_ENCRYPTION_METHODS.contains(enc)) {
+            throw new JOSEException(
+                    AlgorithmSupportMessage.unsupportedEncryptionMethod(enc, SUPPORTED_ENCRYPTION_METHODS));
+        }
     }
 }
