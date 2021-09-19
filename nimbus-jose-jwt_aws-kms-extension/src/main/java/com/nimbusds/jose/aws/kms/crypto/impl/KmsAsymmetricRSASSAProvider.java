@@ -1,22 +1,4 @@
-/*
- * nimbus-jose-jwt
- *
- * Copyright 2012-2016, Connect2id Ltd and contributors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
- * this file except in compliance with the License. You may obtain a copy of the
- * License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
 package com.nimbusds.jose.aws.kms.crypto.impl;
-
 
 import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.MessageType;
@@ -40,21 +22,29 @@ import lombok.NonNull;
 import lombok.var;
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
+
+/**
+ * This class provides cryptography support for RSA-SSA based signing/verification with keys stored in AWS KMS.
+ */
 public abstract class KmsAsymmetricRSASSAProvider extends BaseJWSProvider {
 
+    /**
+     * AWS-KMS client.
+     */
     @NonNull
     @Getter(AccessLevel.PROTECTED)
     private final AWSKMS kms;
 
     /**
-     * KMS Private key ID (it can be a key ID, key ARN, key alias or key alias ARN)
+     * KMS private-key (CMK) ID (it can be a key ID, key ARN, key alias or key alias ARN)
      */
     @NonNull
     @Getter(AccessLevel.PROTECTED)
     private final String privateKeyId;
 
     /**
-     * KMS Message Type.
+     * KMS Message Type. Refer KMS's sign and verify APIs for details.
+     * Ref: https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html#KMS-Sign-request-MessageType
      */
     @NonNull
     @Getter(AccessLevel.PROTECTED)
@@ -77,7 +67,10 @@ public abstract class KmsAsymmetricRSASSAProvider extends BaseJWSProvider {
                     .build();
 
     /**
-     * The supported JWS algorithms by the RSA-SSA provider class.
+     * The supported JWS algorithms (alg) by the RSA-SSA provider class.
+     *
+     * Note: We are using KMS prescribed algorithm names here.
+     * Ref: https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose.html#key-spec-rsa-sign
      */
     public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.keySet();
 

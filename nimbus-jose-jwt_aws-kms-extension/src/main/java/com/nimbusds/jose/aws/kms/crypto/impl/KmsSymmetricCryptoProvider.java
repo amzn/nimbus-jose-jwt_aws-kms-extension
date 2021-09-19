@@ -4,6 +4,7 @@ import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.model.DataKeySpec;
 import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
@@ -11,22 +12,59 @@ import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.crypto.impl.PublicBaseJWEProvider;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 
+
+/**
+ * This class provides cryptography support for SYMMETRIC (AES based) encryption/decryption with keys stored in AWS
+ * KMS.
+ */
 public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
 
     /**
-     * The supported JWE algorithms by the AWS crypto provider class.
+     * AWS-KMS client.
      */
-    public static final Set<JWEAlgorithm> SUPPORTED_ALGORITHMS;
+    @NonNull
+    @Getter(AccessLevel.PROTECTED)
+    private final AWSKMS kms;
 
-    public static final Set<EncryptionMethod> SUPPORTED_ENCRYPTION_METHODS;
+    /**
+     * KMS key (CMK) ID (it can be a key ID, key ARN, key alias or key alias ARN)
+     */
+    @NonNull
+    @Getter(AccessLevel.PROTECTED)
+    private final String keyId;
+
+    /**
+     * Encryption context for KMS. Refer KMS's encrypt and decrypt APIs for more details.
+     * Ref: https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html#KMS-Encrypt-request-EncryptionContext
+     */
+    @Getter(AccessLevel.PROTECTED)
+    private Map<String, String> encryptionContext;
+
+    /**
+     * The supported JWE algorithms (alg) by the AWS crypto provider class.
+     *
+     * Note: We are using KMS prescribed algorithm names here.
+     * Ref: https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose.html#key-spec-symmetric-default
+     */
+    public static final Set<JWEAlgorithm> SUPPORTED_ALGORITHMS = ImmutableSet.of(
+            JWEAlgorithm.parse(EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.toString()));
+
+    /**
+     * The supported JWE encryption methods (enc) by the AWS crypto provider class.
+     *
+     * Note: We are using JWE prescribed encryption method names here.
+     */
+    public static final Set<EncryptionMethod> SUPPORTED_ENCRYPTION_METHODS = ImmutableSet.of(
+            EncryptionMethod.A128CBC_HS256,
+            EncryptionMethod.A256CBC_HS512,
+            EncryptionMethod.A128GCM,
+            EncryptionMethod.A256GCM);
 
     public static final Map<EncryptionMethod, DataKeySpec> ENCRYPTION_METHOD_TO_DATA_KEY_SPEC_MAP =
             ImmutableMap.<EncryptionMethod, DataKeySpec>builder()
@@ -37,30 +75,6 @@ public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
                     .build();
 
     public static final String ENCRYPTION_CONTEXT_HEADER = "ec";
-
-    static {
-        Set<JWEAlgorithm> algs = new LinkedHashSet<>();
-        algs.add(JWEAlgorithm.parse(EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.toString()));
-        SUPPORTED_ALGORITHMS = Collections.unmodifiableSet(algs);
-
-        Set<EncryptionMethod> methods = new LinkedHashSet<>();
-        methods.add(EncryptionMethod.A128CBC_HS256);
-        methods.add(EncryptionMethod.A256CBC_HS512);
-        methods.add(EncryptionMethod.A128GCM);
-        methods.add(EncryptionMethod.A256GCM);
-        SUPPORTED_ENCRYPTION_METHODS = Collections.unmodifiableSet(methods);
-    }
-
-    @NonNull
-    @Getter(AccessLevel.PROTECTED)
-    private final AWSKMS kms;
-
-    @NonNull
-    @Getter(AccessLevel.PROTECTED)
-    private final String keyId;
-
-    @Getter(AccessLevel.PROTECTED)
-    private Map<String, String> encryptionContext;
 
     protected KmsSymmetricCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId) {
         super(SUPPORTED_ALGORITHMS, ContentCryptoProvider.SUPPORTED_ENCRYPTION_METHODS);

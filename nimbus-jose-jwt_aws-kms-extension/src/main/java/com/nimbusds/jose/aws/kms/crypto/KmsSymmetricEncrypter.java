@@ -19,6 +19,7 @@ import com.nimbusds.jose.JWECryptoParts;
 import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.RemoteKeySourceException;
+import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricRSASSAProvider;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
@@ -31,6 +32,12 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.NonNull;
 
+/**
+ * Encrypter implementation for SYMMETRIC (AES based) signing with public/private key stored in AWS KMS.
+ * <p>
+ * See {@link KmsSymmetricCryptoProvider} for supported algorithms and encryption methods, and for details of various
+ * constructor parameters.
+ */
 @ThreadSafe
 public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements JWEEncrypter {
 

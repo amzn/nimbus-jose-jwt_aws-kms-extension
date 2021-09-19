@@ -26,7 +26,10 @@ import lombok.var;
 
 
 /**
- *
+ * Signer implementation for RSA-SSA signing with public/private key stored in AWS KMS.
+ * <p>
+ * See {@link KmsAsymmetricRSASSAProvider} for supported algorithms, and for details of various
+ * constructor parameters.
  */
 @ThreadSafe
 public class KmsAsymmetricRSASSASigner extends KmsAsymmetricRSASSAProvider implements JWSSigner {

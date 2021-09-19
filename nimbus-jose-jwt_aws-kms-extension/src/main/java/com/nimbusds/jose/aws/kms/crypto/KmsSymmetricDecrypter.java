@@ -32,6 +32,12 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.NonNull;
 
+/**
+ * Decrypter implementation for SYMMETRIC (AES based) signing with public/private key stored in AWS KMS.
+ * <p>
+ * See {@link KmsSymmetricCryptoProvider} for supported algorithms and encryption methods, and for details of various
+ * constructor parameters.
+ */
 @ThreadSafe
 public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements JWEDecrypter,
         CriticalHeaderParamsAware {

@@ -30,7 +30,10 @@ import lombok.NonNull;
 import lombok.var;
 
 /**
- *
+ * Sign verifier implementation for RSA-SSA signing with public/private key stored in AWS KMS.
+ * <p>
+ * See {@link KmsAsymmetricRSASSAProvider} for supported algorithms, and for details of various
+ * constructor parameters.
  */
 @ThreadSafe
 public class KmsAsymmetricRSASSAVerifier

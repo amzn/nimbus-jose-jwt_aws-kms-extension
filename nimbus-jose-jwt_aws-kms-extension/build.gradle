@@ -5,6 +5,9 @@ plugins {
     id "io.freefair.lombok" version "6.1.0"
 }
 
+group = 'software.amazon.crypto'
+version = '1.0.0'
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
@@ -43,7 +46,6 @@ dependencies {
     testImplementation 'org.jeasy:easy-random-core:4.3.0'
 }
 
-version = '1.0.0'
 apply from: 'scripts.gradle'
 
 test {
