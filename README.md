@@ -50,4 +50,9 @@ nimbus-jose-jwt, is used.
 
 # Installation
 
-For now, you can directly depend upon the git branch 'v-1.0.0'. We'll publish this package on MavenCentral soon.  
+For now, you can directly depend upon the git branch 'v-1.0.0'. We'll publish this package on MavenCentral soon.
+
+# Scripts
+
+There are various scripts included in this package, which you can use to perform various encryption/signing operations.
+You can find Gradle tasks and available options of these scripts in `scripts.gradle` file.
