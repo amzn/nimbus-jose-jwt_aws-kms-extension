@@ -1,4 +1,4 @@
-# About this package
+# nimbus-jose-jwt_aws-kms-extension
 
 This library package is an **extension of [nimbus-jose-jwt](https://connect2id.com/products/nimbus-jose-jwt)** library.
 It is compatible with version 9.+ of nimbus-jose-jwt. It provides JWE based encrypters/decrypters and JWS based
@@ -56,3 +56,11 @@ For now, you can directly depend upon the git branch 'v-1.0.0'. We'll publish th
 
 There are various scripts included in this package, which you can use to perform various encryption/signing operations.
 You can find Gradle tasks and available options of these scripts in `scripts.gradle` file.
+
+# Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+# License
+
+This project is licensed under the Apache-2.0 License.
