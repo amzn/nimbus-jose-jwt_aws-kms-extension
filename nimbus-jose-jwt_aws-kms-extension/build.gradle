@@ -3,15 +3,19 @@ plugins {
     id 'java-library'
     id 'jacoco'
     id "io.freefair.lombok" version "6.1.0"
+    id 'maven-publish'
+    id 'signing'
 }
 
-group = 'software.amazon.crypto'
+group = 'software.amazon.lynx'
 version = '1.0.0'
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(8)
     }
+    withJavadocJar()
+    withSourcesJar()
 }
 
 tasks.withType(JavaCompile) {
@@ -25,27 +29,28 @@ repositories {
 
 dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api 'com.nimbusds:nimbus-jose-jwt:9.+'
+    api 'com.nimbusds:nimbus-jose-jwt:[9,10)'
 
-    implementation 'com.amazonaws:aws-java-sdk-kms:1.12.+'
-    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
-    implementation 'commons-cli:commons-cli:1.4'
-    implementation 'com.google.guava:guava:30.1.1-jre'
+    // These dependencies is used internally, and not exposed to consumers on their own compile classpath.
+    implementation 'com.amazonaws:aws-java-sdk-kms:[1.12, 2)'
+    implementation 'commons-cli:commons-cli:[1.4, 2)'
+    implementation 'com.google.guava:guava:[30,31)'
 
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter:5.+'
-    testImplementation 'org.assertj:assertj-core:3.+'
+    testImplementation 'org.assertj:assertj-core:[3,4)'
 
     // Mockito
-    testImplementation 'org.mockito:mockito-core:3.+'
-    testImplementation 'org.mockito:mockito-inline:3.+'
-    testImplementation 'org.mockito:mockito-junit-jupiter:3.+'
+    testImplementation 'org.mockito:mockito-core:[3,4)'
+    testImplementation 'org.mockito:mockito-inline:[3,4)'
+    testImplementation 'org.mockito:mockito-junit-jupiter:[3,4)'
 
     // Easy Rand
     testImplementation 'org.jeasy:easy-random-core:4.3.0'
 }
 
 apply from: 'scripts.gradle'
+apply from: 'maven.gradle'
 
 test {
     useJUnitPlatform() // Use JUnit Platform for unit tests.

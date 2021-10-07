@@ -1,0 +1,49 @@
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            versionMapping {
+                from components.java
+            }
+            pom {
+                name = 'AWS KMS Extension, for Nimbus JOSE JWT'
+                description = 'This library package is an extension of nimbus-jose-jwt library. ' +
+                        'It provides JWE based encrypters/decrypters and JWS based signers/verifiers ' +
+                        'for doing operations with cryptographic keys stores in AWS KMS.'
+                url = 'https://github.com/amzn/nimbus-jose-jwt_aws-kms-extension'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:ssh://github.com/amzn/nimbus-jose-jwt_aws-kms-extension.git'
+                    url = 'https://github.com/amzn/nimbus-jose-jwt_aws-kms-extension'
+                    tag = "v$version"
+                }
+                developers {
+                    developer {
+                        id = 'lynx-tech'
+                        name = 'Lync Tech'
+                        email = 'lynx-tech@amazon.com'
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://aws.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://aws.oss.sonatype.org/content/repositories/snapshots/"
+            url = project.hasProperty('ossrhRelease') ? releasesRepoUrl : snapshotsRepoUrl
+            credentials(PasswordCredentials) {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}

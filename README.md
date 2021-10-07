@@ -50,7 +50,28 @@ nimbus-jose-jwt, is used.
 
 # Installation
 
-For now, you can directly depend upon the git branch 'v-1.0.0'. We'll publish this package on MavenCentral soon.
+This library is available on [Maven Central](https://search.maven.org/artifact/software.amazon.lynx/nimbus-jose-jwt_aws-kms-extension).
+Following are the installation details.
+
+## Apache Maven
+```xml
+<dependency>
+    <groupId>software.amazon.lynx</groupId>
+    <artifactId>nimbus-jose-jwt_aws-kms-extension</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+## Gradle Groovy DSL
+```groovy
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "software.amazon.lynx:nimbus-jose-jwt_aws-kms-extension:1.0.0"
+}
+```
 
 # Scripts
 
