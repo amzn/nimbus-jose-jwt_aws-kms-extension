@@ -40,5 +40,6 @@ task kmsRsaSsaVerify(type: JavaExec) {
     description = 'Run the main class with JavaExecTask'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsAsymmetricJwsCompactVerifierScript'
-    args = propertiesToArgumentMapper(project.getProperties(), ['jwsToken', 'help'])
+    args = propertiesToArgumentMapper(
+            project.getProperties(), ['messageType', 'defCritHeaders', 'jwsToken', 'help'])
 }
