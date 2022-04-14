@@ -98,12 +98,9 @@ public abstract class KmsAsymmetricRSASSAProvider extends BaseJWSProvider {
         this.messageType = messageType;
     }
 
-    protected ByteBuffer getMessage(final JWSHeader header, final byte[] payloadBytes) throws JOSEException {
+    protected ByteBuffer getMessage(final JWSHeader header, final byte[] signingInput) throws JOSEException {
         final var alg = header.getAlgorithm();
-        final var payload = new Payload(payloadBytes);
-        var message = String
-                .format("%s.%s", header.toBase64URL(), payload.toBase64URL())
-                .getBytes(StandardCharsets.US_ASCII);
+        var message = signingInput;
 
         String messageDigestAlgorithm = Optional.ofNullable(JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(alg))
                 .orElseThrow(() -> new JOSEException(

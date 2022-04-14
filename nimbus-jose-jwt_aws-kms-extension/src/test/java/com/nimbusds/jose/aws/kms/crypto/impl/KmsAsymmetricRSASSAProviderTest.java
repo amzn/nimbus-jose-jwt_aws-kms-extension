@@ -76,12 +76,12 @@ public class KmsAsymmetricRSASSAProviderTest {
     class GetMessage {
 
         private JWSHeader testJwsHeader;
-        private byte[] testPayloadBytes;
+        private byte[] testSigningInputBytes;
 
         @BeforeEach
         void beforeEach() {
-            testPayloadBytes = new byte[random.nextInt(100)];
-            random.nextBytes(testPayloadBytes);
+            testSigningInputBytes = new byte[random.nextInt(100)];
+            random.nextBytes(testSigningInputBytes);
         }
 
         @Nested
@@ -96,7 +96,7 @@ public class KmsAsymmetricRSASSAProviderTest {
             @Test
             @DisplayName("should throw JOSEException.")
             void shouldThrowException() {
-                assertThatThrownBy(() -> kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testPayloadBytes))
+                assertThatThrownBy(() -> kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testSigningInputBytes))
                         .isInstanceOf(JOSEException.class)
                         .hasMessage(String.format("No digest algorithm exist for JWE algorithm %s in map: %s",
                                 testJwsHeader.getAlgorithm(),
@@ -115,10 +115,8 @@ public class KmsAsymmetricRSASSAProviderTest {
                 testJwsHeader = new JWSHeader.Builder(
                         JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()))
                         .build();
-                testPayloadBytes = "Test Payload / ٹیسٹ پیلوڈ".getBytes(StandardCharsets.UTF_8);
-                expectedMessage = ByteBuffer.wrap(
-                        "eyJhbGciOiJSU0FTU0FfUFNTX1NIQV81MTIifQ.VGVzdCBQYXlsb2FkIC8g2bnbjNiz2bkg2b7bjNmE2YjaiA"
-                                .getBytes(StandardCharsets.US_ASCII));
+                testSigningInputBytes = "Test Payload / ٹیسٹ پیلوڈ".getBytes(StandardCharsets.UTF_8);
+                expectedMessage = ByteBuffer.wrap(testSigningInputBytes);
             }
 
             @Nested
@@ -137,7 +135,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                 @DisplayName("should return message ByteBuffer.")
                 @SneakyThrows
                 void shouldReturnMessageByteBuffer() {
-                    ByteBuffer actualMessage = kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testPayloadBytes);
+                    ByteBuffer actualMessage = kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testSigningInputBytes);
                     assertThat(actualMessage).isEqualTo(expectedMessage);
                 }
             }
@@ -177,7 +175,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                     @DisplayName("should throw JOSEException.")
                     void shouldThrowException() {
                         assertThatThrownBy(
-                                () -> kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testPayloadBytes))
+                                () -> kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testSigningInputBytes))
                                 .isInstanceOf(JOSEException.class)
                                 .hasMessage("Invalid message digest algorithm.")
                                 .hasCause(mockNoSuchAlgorithmException);
@@ -213,7 +211,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                     @SneakyThrows
                     void shouldReturnMessageByteBuffer() {
                         ByteBuffer actualMessage = kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader,
-                                testPayloadBytes);
+                                testSigningInputBytes);
                         assertThat(actualMessage).isEqualTo(expectedDigestMessage);
                     }
                 }

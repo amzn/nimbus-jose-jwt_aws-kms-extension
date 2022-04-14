@@ -24,6 +24,10 @@ import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.kms.model.MessageType;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRSASSAVerifier;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -59,7 +63,9 @@ public class KmsAsymmetricJwsCompactVerifierScript {
                     KmsAsymmetricJwsCompactVerifierScriptOptionNames.HELP);
         } else {
             var verificationResult = verify(
-                    cmd.getOptionValue(KmsAsymmetricJwsCompactVerifierScriptOptionNames.JWS_TOKEN));
+                    cmd.getOptionValue(KmsAsymmetricJwsCompactVerifierScriptOptionNames.JWS_TOKEN),
+                    cmd.getOptionValue(KmsAsymmetricJwsCompactVerifierScriptOptionNames.MESSAGE_TYPE),
+                    cmd.getOptionValue(KmsAsymmetricJwsCompactVerifierScriptOptionNames.DEFERRED_CRITICAL_HEADERS));
 
             out.printf("%1$sVERIFYCATION STATUS :%1$s%2$s%1$s", LINE_SEPARATOR,
                     verificationResult ? "Verified" : "Not Verified");
@@ -78,19 +84,45 @@ public class KmsAsymmetricJwsCompactVerifierScript {
                 .longOpt(KmsAsymmetricJwsCompactVerifierScriptOptionNames.JWS_TOKEN)
                 .desc("Serialized JWS Token to Verify")
                 .build());
+        options.addOption(Option.builder()
+                .hasArg()
+                .longOpt(KmsAsymmetricJwsCompactVerifierScriptOptionNames.MESSAGE_TYPE)
+                .desc("Type Of message can be Digest or raw" +
+                        "https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html#API_Sign_RequestSyntax")
+                .build());
+        options.addOption(Option.builder()
+                .hasArg()
+                .longOpt(KmsAsymmetricJwsCompactVerifierScriptOptionNames.DEFERRED_CRITICAL_HEADERS)
+                .desc("Comma separated critical headers which needs to be deferred from verification.")
+                .build());
 
         return options;
     }
 
-    private boolean verify(String serializedJws)
+    private boolean verify(final String serializedJws, final String messageTypeString,
+                           final String defCritHeadersString)
             throws Exception {
 
         var jwsObject = JWSObject.parse(serializedJws);
 
-        return jwsObject.verify(new KmsAsymmetricRSASSAVerifier(
-                AWSKMSClientBuilder.defaultClient(),
-                jwsObject.getHeader().getKeyID(),
-                MessageType.fromValue(jwsObject.getHeader().getCustomParam(MESSAGE_TYPE).toString())));
+        final var messageType = MessageType.fromValue(
+                Objects.nonNull(messageTypeString) ?
+                        messageTypeString : jwsObject.getHeader().getCustomParam(MESSAGE_TYPE).toString());
+
+        Set<String> defCritHeaders = null;
+        if (Objects.nonNull(defCritHeadersString)) {
+            defCritHeaders = Arrays.stream(defCritHeadersString.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toSet());
+        }
+
+        return jwsObject.verify(
+                Objects.nonNull(defCritHeaders) ?
+                        new KmsAsymmetricRSASSAVerifier(
+                                AWSKMSClientBuilder.defaultClient(), jwsObject.getHeader().getKeyID(), messageType,
+                                defCritHeaders)
+                        : new KmsAsymmetricRSASSAVerifier(
+                                AWSKMSClientBuilder.defaultClient(), jwsObject.getHeader().getKeyID(), messageType));
     }
 }
 
@@ -98,6 +130,10 @@ final class KmsAsymmetricJwsCompactVerifierScriptOptionNames {
 
     public static final String HELP = "help";
     public static final String JWS_TOKEN = "jwsToken";
+
+    public static final String MESSAGE_TYPE = "messageType";
+
+    public static final String DEFERRED_CRITICAL_HEADERS = "defCritHeaders";
 
     private KmsAsymmetricJwsCompactVerifierScriptOptionNames() {
     }
