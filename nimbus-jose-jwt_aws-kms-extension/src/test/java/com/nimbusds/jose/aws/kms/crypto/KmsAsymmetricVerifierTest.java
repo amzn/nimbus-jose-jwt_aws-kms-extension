@@ -61,9 +61,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
-@DisplayName("For KmsAsymmetricRSASSAVerifier class,")
+@DisplayName("For KmsAsymmetricVerifier class,")
 @ExtendWith(MockitoExtension.class)
-public class KmsAsymmetricRsaSsaVerifierTest {
+public class KmsAsymmetricVerifierTest {
 
     private final EasyRandom random = new EasyRandom();
 
@@ -73,7 +73,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
     private MessageType testMessageType;
     private Set<String> testCriticalHeaders;
 
-    private KmsAsymmetricRSASSAVerifier kmsAsymmetricRsaSsaVerifier;
+    private KmsAsymmetricVerifier kmsAsymmetricVerifier;
 
     @BeforeEach
     void setUp() {
@@ -88,7 +88,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
 
         @BeforeEach
         void beforeEach() {
-            kmsAsymmetricRsaSsaVerifier = new KmsAsymmetricRSASSAVerifier(
+            kmsAsymmetricVerifier = new KmsAsymmetricVerifier(
                     mockAwsKms, testPrivateKeyId, testMessageType);
         }
 
@@ -96,7 +96,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
         @DisplayName("should return processed critical headers.")
         void shouldReturnProcessedCriticalHeaders() {
             final Set<String> actualProcessedCriticalHeader =
-                    kmsAsymmetricRsaSsaVerifier.getProcessedCriticalHeaderParams();
+                    kmsAsymmetricVerifier.getProcessedCriticalHeaderParams();
             assertThat(actualProcessedCriticalHeader)
                     .isEqualTo(new CriticalHeaderParamsDeferral().getProcessedCriticalHeaderParams());
         }
@@ -108,7 +108,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
 
         @BeforeEach
         void beforeEach() {
-            kmsAsymmetricRsaSsaVerifier = new KmsAsymmetricRSASSAVerifier(
+            kmsAsymmetricVerifier = new KmsAsymmetricVerifier(
                     mockAwsKms, testPrivateKeyId, testMessageType, testCriticalHeaders);
         }
 
@@ -116,7 +116,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
         @DisplayName("should return deferred critical headers.")
         void shouldReturnDeferredCriticalHeaders() {
             final Set<String> actualDeferredCriticalHeader =
-                    kmsAsymmetricRsaSsaVerifier.getDeferredCriticalHeaderParams();
+                    kmsAsymmetricVerifier.getDeferredCriticalHeaderParams();
             assertThat(actualDeferredCriticalHeader).isEqualTo(testCriticalHeaders);
         }
     }
@@ -150,9 +150,9 @@ public class KmsAsymmetricRsaSsaVerifierTest {
         @SneakyThrows
         private void mockGetMessage() {
             ReflectionSupport.invokeMethod(
-                    kmsAsymmetricRsaSsaVerifier.getClass().getSuperclass().getSuperclass()
+                    kmsAsymmetricVerifier.getClass().getSuperclass()
                             .getDeclaredMethod("getMessage", JWSHeader.class, byte[].class),
-                    doReturn(mockMessage).when(kmsAsymmetricRsaSsaVerifier),
+                    doReturn(mockMessage).when(kmsAsymmetricVerifier),
                     testJweHeader,
                     testSigningInput);
         }
@@ -163,7 +163,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
 
             @BeforeEach
             void beforeEach() {
-                kmsAsymmetricRsaSsaVerifier = spy(new KmsAsymmetricRSASSAVerifier(
+                kmsAsymmetricVerifier = spy(new KmsAsymmetricVerifier(
                         mockAwsKms, testPrivateKeyId, testMessageType));
             }
 
@@ -172,7 +172,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             @SneakyThrows
             void shouldReturnFalse() {
                 final boolean result =
-                        kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature);
+                        kmsAsymmetricVerifier.verify(testJweHeader, testSigningInput, testSignature);
                 assertThat(result).isFalse();
             }
         }
@@ -183,7 +183,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
 
             @BeforeEach
             void beforeEach() {
-                kmsAsymmetricRsaSsaVerifier = spy(new KmsAsymmetricRSASSAVerifier(
+                kmsAsymmetricVerifier = spy(new KmsAsymmetricVerifier(
                         mockAwsKms, testPrivateKeyId, testMessageType, testCriticalHeaders));
                 mockGetMessage();
             }
@@ -214,7 +214,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 void shouldThrowRemoteKeySourceException(Class<AWSKMSException> exceptionClass) {
                     final var mockInvalidSigningException = parameterizedBeforeEach(exceptionClass);
                     assertThatThrownBy(
-                            () -> kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature))
+                            () -> kmsAsymmetricVerifier.verify(testJweHeader, testSigningInput, testSignature))
                             .isInstanceOf(RemoteKeySourceException.class)
                             .hasMessage("An exception was thrown from KMS due to invalid key.")
                             .hasCause(mockInvalidSigningException);
@@ -246,7 +246,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 void shouldThrowJOSEException(Class<AWSKMSException> exceptionClass) {
                     final var mockInvalidSigningException = parameterizedBeforeEach(exceptionClass);
                     assertThatThrownBy(
-                            () -> kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature))
+                            () -> kmsAsymmetricVerifier.verify(testJweHeader, testSigningInput, testSignature))
                             .isInstanceOf(TemporaryJOSEException.class)
                             .hasMessage("A temporary exception was thrown from KMS.")
                             .hasCause(mockInvalidSigningException);
@@ -277,7 +277,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 @SneakyThrows
                 void shouldReturnFalse() {
                     final boolean result =
-                            kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature);
+                            kmsAsymmetricVerifier.verify(testJweHeader, testSigningInput, testSignature);
                     assertThat(result).isFalse();
                 }
             }
@@ -308,7 +308,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 @SneakyThrows
                 void shouldReturnFalse() {
                     final boolean result =
-                            kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature);
+                            kmsAsymmetricVerifier.verify(testJweHeader, testSigningInput, testSignature);
                     assertThat(result).isFalse();
                 }
             }
@@ -339,7 +339,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 @SneakyThrows
                 void shouldReturnTrue() {
                     final boolean result =
-                            kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature);
+                            kmsAsymmetricVerifier.verify(testJweHeader, testSigningInput, testSignature);
                     assertThat(result).isTrue();
                 }
             }

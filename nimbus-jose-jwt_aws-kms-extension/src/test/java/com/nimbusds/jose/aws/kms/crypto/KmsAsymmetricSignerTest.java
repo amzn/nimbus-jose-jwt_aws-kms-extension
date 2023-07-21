@@ -56,9 +56,9 @@ import org.junit.platform.commons.support.ReflectionSupport;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@DisplayName("For KmsAsymmetricRSASSASigner class,")
+@DisplayName("For KmsAsymmetricSigner class,")
 @ExtendWith(MockitoExtension.class)
-public class KmsAsymmetricRsaSsaSignerTest {
+public class KmsAsymmetricSignerTest {
 
     private final EasyRandom random = new EasyRandom();
 
@@ -67,14 +67,14 @@ public class KmsAsymmetricRsaSsaSignerTest {
     private String testPrivateKeyId;
     private MessageType testMessageType;
 
-    private KmsAsymmetricRSASSASigner kmsAsymmetricRsaSsaSigner;
+    private KmsAsymmetricSigner kmsAsymmetricSigner;
 
     @BeforeEach
     void setUp() {
         testPrivateKeyId = random.nextObject(String.class);
         testMessageType = random.nextObject(MessageType.class);
 
-        kmsAsymmetricRsaSsaSigner = spy(new KmsAsymmetricRSASSASigner(mockAwsKms, testPrivateKeyId, testMessageType));
+        kmsAsymmetricSigner = spy(new KmsAsymmetricSigner(mockAwsKms, testPrivateKeyId, testMessageType));
     }
 
     @Nested
@@ -99,9 +99,9 @@ public class KmsAsymmetricRsaSsaSignerTest {
             random.nextBytes(mockMessage.array());
 
             ReflectionSupport.invokeMethod(
-                    kmsAsymmetricRsaSsaSigner.getClass().getSuperclass().getSuperclass()
+                    kmsAsymmetricSigner.getClass().getSuperclass()
                             .getDeclaredMethod("getMessage", JWSHeader.class, byte[].class),
-                    doReturn(mockMessage).when(kmsAsymmetricRsaSsaSigner),
+                    doReturn(mockMessage).when(kmsAsymmetricSigner),
                     testJweHeader,
                     testSigningInput);
         }
@@ -130,7 +130,7 @@ public class KmsAsymmetricRsaSsaSignerTest {
                     InvalidKeyUsageException.class, KMSInvalidStateException.class})
             void shouldThrowRemoteKeySourceException(Class<AWSKMSException> exceptionClass) {
                 final var mockInvalidSigningException = parameterizedBeforeEach(exceptionClass);
-                assertThatThrownBy(() -> kmsAsymmetricRsaSsaSigner.sign(testJweHeader, testSigningInput))
+                assertThatThrownBy(() -> kmsAsymmetricSigner.sign(testJweHeader, testSigningInput))
                         .isInstanceOf(RemoteKeySourceException.class)
                         .hasMessage("An exception was thrown from KMS due to invalid key.")
                         .hasCause(mockInvalidSigningException);
@@ -160,7 +160,7 @@ public class KmsAsymmetricRsaSsaSignerTest {
                     DependencyTimeoutException.class, InvalidGrantTokenException.class, KMSInternalException.class})
             void shouldThrowJOSEException(Class<AWSKMSException> exceptionClass) {
                 final var mockInvalidSigningException = parameterizedBeforeEach(exceptionClass);
-                assertThatThrownBy(() -> kmsAsymmetricRsaSsaSigner.sign(testJweHeader, testSigningInput))
+                assertThatThrownBy(() -> kmsAsymmetricSigner.sign(testJweHeader, testSigningInput))
                         .isInstanceOf(TemporaryJOSEException.class)
                         .hasMessage("A temporary exception was thrown from KMS.")
                         .hasCause(mockInvalidSigningException);
@@ -196,7 +196,7 @@ public class KmsAsymmetricRsaSsaSignerTest {
             @DisplayName("should return based-64-URL encoded signature.")
             @SneakyThrows
             void shouldReturnValidResponse() {
-                final var actualSignature = kmsAsymmetricRsaSsaSigner.sign(testJweHeader, testSigningInput);
+                final var actualSignature = kmsAsymmetricSigner.sign(testJweHeader, testSigningInput);
                 assertThat(actualSignature).isEqualTo(expectedSignature);
             }
         }

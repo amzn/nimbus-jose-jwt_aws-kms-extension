@@ -27,7 +27,7 @@ task kmsSymmetricJWEDecrypt(type: JavaExec) {
     args = propertiesToArgumentMapper(project.getProperties(), ['jweToken', 'help'])
 }
 
-task kmsRsaSsaSigner(type: JavaExec) {
+task kmsAsymmetricJWSSign(type: JavaExec) {
     group = 'Execution'
     description = 'Run the main class with JavaExecTask'
     classpath = sourceSets.main.runtimeClasspath
@@ -35,7 +35,7 @@ task kmsRsaSsaSigner(type: JavaExec) {
     args = propertiesToArgumentMapper(project.getProperties(), ['alg', 'kid', 'messageType', 'payload', 'help'])
 }
 
-task kmsRsaSsaVerify(type: JavaExec) {
+task kmsAsymmetricJWSVerify(type: JavaExec) {
     group = 'Execution'
     description = 'Run the main class with JavaExecTask'
     classpath = sourceSets.main.runtimeClasspath

@@ -23,7 +23,7 @@ import static java.lang.System.out;
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.amazonaws.services.kms.model.MessageType;
 import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRSASSAVerifier;
+import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricVerifier;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
@@ -42,7 +42,7 @@ public class KmsAsymmetricJwsCompactVerifierScript {
     /**
      * Command to invoke this script.
      */
-    private static final String COMMAND = "gradle kmsSymmetricJWSVerify";
+    private static final String COMMAND = "gradle kmsAsymmetricJWSVerify";
 
 
     public static void main(String[] args) throws Exception {
@@ -118,10 +118,10 @@ public class KmsAsymmetricJwsCompactVerifierScript {
 
         return jwsObject.verify(
                 Objects.nonNull(defCritHeaders) ?
-                        new KmsAsymmetricRSASSAVerifier(
+                        new KmsAsymmetricVerifier(
                                 AWSKMSClientBuilder.defaultClient(), jwsObject.getHeader().getKeyID(), messageType,
                                 defCritHeaders)
-                        : new KmsAsymmetricRSASSAVerifier(
+                        : new KmsAsymmetricVerifier(
                                 AWSKMSClientBuilder.defaultClient(), jwsObject.getHeader().getKeyID(), messageType));
     }
 }

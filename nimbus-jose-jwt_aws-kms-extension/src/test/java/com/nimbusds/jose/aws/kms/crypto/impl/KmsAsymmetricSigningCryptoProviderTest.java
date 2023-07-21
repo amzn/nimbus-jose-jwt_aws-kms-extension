@@ -46,9 +46,9 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@DisplayName("For KmsAsymmetricRSASSAProvider class,")
+@DisplayName("For KmsAsymmetricSigningCryptoProvider class,")
 @ExtendWith(MockitoExtension.class)
-public class KmsAsymmetricRSASSAProviderTest {
+public class KmsAsymmetricSigningCryptoProviderTest {
 
     private EasyRandom random;
 
@@ -57,7 +57,7 @@ public class KmsAsymmetricRSASSAProviderTest {
     private String testPrivateKeyId;
     private MessageType testMessageType;
 
-    private KmsAsymmetricRSASSAProvider kmsAsymmetricRsaSsaProvider;
+    private KmsAsymmetricSigningCryptoProvider kmsAsymmetricSigningCryptoProvider;
 
     @BeforeEach
     void beforeEach() {
@@ -66,7 +66,7 @@ public class KmsAsymmetricRSASSAProviderTest {
         testPrivateKeyId = random.nextObject(String.class);
         testMessageType = random.nextObject(MessageType.class);
 
-        kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRSASSAProvider.class, withSettings()
+        kmsAsymmetricSigningCryptoProvider = mock(KmsAsymmetricSigningCryptoProvider.class, withSettings()
                 .useConstructor(mockAwsKms, testPrivateKeyId, testMessageType)
                 .defaultAnswer(CALLS_REAL_METHODS));
     }
@@ -96,11 +96,11 @@ public class KmsAsymmetricRSASSAProviderTest {
             @Test
             @DisplayName("should throw JOSEException.")
             void shouldThrowException() {
-                assertThatThrownBy(() -> kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testSigningInputBytes))
+                assertThatThrownBy(() -> kmsAsymmetricSigningCryptoProvider.getMessage(testJwsHeader, testSigningInputBytes))
                         .isInstanceOf(JOSEException.class)
                         .hasMessage(String.format("No digest algorithm exist for the JWS algorithm %s in map: %s",
                                 testJwsHeader.getAlgorithm(),
-                                KmsAsymmetricRSASSAProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM));
+                                KmsAsymmetricSigningCryptoProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM));
             }
         }
 
@@ -126,7 +126,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                 @BeforeEach
                 void beforeEach() {
                     testMessageType = MessageType.RAW;
-                    kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRSASSAProvider.class, withSettings()
+                    kmsAsymmetricSigningCryptoProvider = mock(KmsAsymmetricSigningCryptoProvider.class, withSettings()
                             .useConstructor(mockAwsKms, testPrivateKeyId, testMessageType)
                             .defaultAnswer(CALLS_REAL_METHODS));
                 }
@@ -135,7 +135,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                 @DisplayName("should return message ByteBuffer.")
                 @SneakyThrows
                 void shouldReturnMessageByteBuffer() {
-                    ByteBuffer actualMessage = kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testSigningInputBytes);
+                    ByteBuffer actualMessage = kmsAsymmetricSigningCryptoProvider.getMessage(testJwsHeader, testSigningInputBytes);
                     assertThat(actualMessage).isEqualTo(expectedMessage);
                 }
             }
@@ -149,7 +149,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                 @BeforeEach
                 void beforeEach() {
                     testMessageType = MessageType.DIGEST;
-                    kmsAsymmetricRsaSsaProvider = mock(KmsAsymmetricRSASSAProvider.class, withSettings()
+                    kmsAsymmetricSigningCryptoProvider = mock(KmsAsymmetricSigningCryptoProvider.class, withSettings()
                             .useConstructor(mockAwsKms, testPrivateKeyId, testMessageType)
                             .defaultAnswer(CALLS_REAL_METHODS));
                 }
@@ -166,7 +166,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                     void beforeEach() {
                         mockMessageDigest
                                 .when(() -> MessageDigest.getInstance(
-                                        KmsAsymmetricRSASSAProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(
+                                        KmsAsymmetricSigningCryptoProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(
                                                 testJwsHeader.getAlgorithm())))
                                 .thenThrow(mockNoSuchAlgorithmException);
                     }
@@ -175,7 +175,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                     @DisplayName("should throw JOSEException.")
                     void shouldThrowException() {
                         assertThatThrownBy(
-                                () -> kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader, testSigningInputBytes))
+                                () -> kmsAsymmetricSigningCryptoProvider.getMessage(testJwsHeader, testSigningInputBytes))
                                 .isInstanceOf(JOSEException.class)
                                 .hasMessage("Invalid message digest algorithm.")
                                 .hasCause(mockNoSuchAlgorithmException);
@@ -196,7 +196,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                     void beforeEach() {
                         mockMessageDigest
                                 .when(() -> MessageDigest.getInstance(
-                                        KmsAsymmetricRSASSAProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(
+                                        KmsAsymmetricSigningCryptoProvider.JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.get(
                                                 testJwsHeader.getAlgorithm())))
                                 .thenReturn(mockMessageDigestProvider);
 
@@ -210,7 +210,7 @@ public class KmsAsymmetricRSASSAProviderTest {
                     @DisplayName("should return message ByteBuffer.")
                     @SneakyThrows
                     void shouldReturnMessageByteBuffer() {
-                        ByteBuffer actualMessage = kmsAsymmetricRsaSsaProvider.getMessage(testJwsHeader,
+                        ByteBuffer actualMessage = kmsAsymmetricSigningCryptoProvider.getMessage(testJwsHeader,
                                 testSigningInputBytes);
                         assertThat(actualMessage).isEqualTo(expectedDigestMessage);
                     }

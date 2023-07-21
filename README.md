@@ -11,9 +11,9 @@ In the current version following encryption and signing operations are supported
 1. Symmetric encryption (AES based).
     1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsSymmetricEncrypter`
        and `com.nimbusds.jose.aws.kms.crypto.KmsSymmetricDecrypter`
-2. RSA-SSA based signing.
-    1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRSASSASigner`
-       and `com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRSASSAVerifier`
+2. Asymmetric signing (RSA or ECDSA based).
+    1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricSigner`
+       and `com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricVerifier`
 
 Above classes should be used in the same way any encryption or signing class, which is directly provided by
 nimbus-jose-jwt, is used.
@@ -33,7 +33,7 @@ nimbus-jose-jwt, is used.
 ## Signing Example (Java 11)
 
 ```jshelllanguage
-    final var jwsSigner = new KmsAsymmetricRSASSASigner(
+    final var jwsSigner = new KmsAsymmetricSigner(
         AWSKMSClientBuilder.defaultClient(),
         kid,
         MessageType.fromValue(messageType));
