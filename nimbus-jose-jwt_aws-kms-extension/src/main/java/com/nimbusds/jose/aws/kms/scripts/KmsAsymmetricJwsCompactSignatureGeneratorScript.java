@@ -26,7 +26,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricRSASSASigner;
+import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricSigner;
 import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -41,7 +41,7 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
     /**
      * Command to invoke this script.
      */
-    private static final String COMMAND = "gradle kmsRsaSsaSigner";
+    private static final String COMMAND = "gradle kmsAsymmetricJWSSign";
 
     public static void main(String[] args) throws Exception {
         new KmsAsymmetricJwsCompactSignatureGeneratorScript().execute(args);
@@ -118,7 +118,7 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
 
     private JWSObject sign(final JWSAlgorithm alg, final String kid, final String payload, final String messageType)
             throws Exception {
-        final var jwsSigner = new KmsAsymmetricRSASSASigner(
+        final var jwsSigner = new KmsAsymmetricSigner(
                 AWSKMSClientBuilder.defaultClient(),
                 kid,
                 MessageType.fromValue(messageType));
