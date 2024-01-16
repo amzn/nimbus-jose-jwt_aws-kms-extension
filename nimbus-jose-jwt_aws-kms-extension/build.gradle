@@ -29,7 +29,7 @@ repositories {
 
 dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api 'com.nimbusds:nimbus-jose-jwt:[9,10)'
+    api 'com.nimbusds:nimbus-jose-jwt:[9,9.31]'
 
     // These dependencies is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.amazonaws:aws-java-sdk-kms:[1.12, 2)'

@@ -1,7 +1,7 @@
 # nimbus-jose-jwt_aws-kms-extension
 
 This library package is an **extension of [nimbus-jose-jwt](https://connect2id.com/products/nimbus-jose-jwt)** library.
-It is compatible with version 9.+ of nimbus-jose-jwt. It provides JWE based encrypters/decrypters and JWS based
+It is compatible with version >=9.0,<=9.31 of nimbus-jose-jwt. It provides JWE based encrypters/decrypters and JWS based
 signers/verifiers for doing operations with cryptographic keys stores in AWS KMS. This library requires Java 8 or above.
 
 # Usage
