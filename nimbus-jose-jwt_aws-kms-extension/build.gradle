@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'software.amazon.lynx'
-version = '1.1.0'
+version = '1.1.1'
 
 java {
     toolchain {
@@ -34,7 +34,7 @@ dependencies {
     // These dependencies is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.amazonaws:aws-java-sdk-kms:[1.12, 2)'
     implementation 'commons-cli:commons-cli:[1.4, 2)'
-    implementation 'com.google.guava:guava:[30,31)'
+    implementation 'com.google.guava:guava:[30,)'
 
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter:5.+'
