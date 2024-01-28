@@ -36,9 +36,9 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@DisplayName("For KmsSymmetricCryptoProvider class,")
+@DisplayName("For KmsDefaultEncryptionCryptoProvider class,")
 @ExtendWith(MockitoExtension.class)
-class KmsSymmetricCryptoProviderTest {
+class KmsDefaultEncryptionCryptoProviderTest {
 
     private EasyRandom random = new EasyRandom();
 
@@ -46,11 +46,11 @@ class KmsSymmetricCryptoProviderTest {
     private AWSKMS mockAwsKms;
     private String testPrivateKeyId = random.nextObject(String.class);
 
-    private KmsSymmetricCryptoProvider kmsSymmetricCryptoProvider;
+    private KmsDefaultEncryptionCryptoProvider kmsDefaultEncryptionCryptoProvider;
 
     @BeforeEach
     void beforeEach() {
-        kmsSymmetricCryptoProvider = mock(KmsSymmetricCryptoProvider.class,
+        kmsDefaultEncryptionCryptoProvider = mock(KmsDefaultEncryptionCryptoProvider.class,
                 withSettings().useConstructor(mockAwsKms, testPrivateKeyId).defaultAnswer(CALLS_REAL_METHODS));
     }
 
@@ -80,11 +80,11 @@ class KmsSymmetricCryptoProviderTest {
             @Test
             @DisplayName("should call `JWEHeaderValidationUtil.validateJWEHeaderAlgorithms`.")
             void shouldThrowException() throws Exception {
-                kmsSymmetricCryptoProvider.validateJWEHeader(testJweHeader);
+                kmsDefaultEncryptionCryptoProvider.validateJWEHeader(testJweHeader);
                 mockJweHeaderValidationUtil.verify(() -> JWEHeaderValidationUtil.validateJWEHeaderAlgorithms(
                         testJweHeader,
-                        KmsSymmetricCryptoProvider.SUPPORTED_ALGORITHMS,
-                        KmsSymmetricCryptoProvider.SUPPORTED_ENCRYPTION_METHODS));
+                        KmsDefaultEncryptionCryptoProvider.SUPPORTED_ALGORITHMS,
+                        KmsDefaultEncryptionCryptoProvider.SUPPORTED_ENCRYPTION_METHODS));
 
             }
         }
@@ -95,7 +95,7 @@ class KmsSymmetricCryptoProviderTest {
 
             @BeforeEach
             void beforeEach() {
-                kmsSymmetricCryptoProvider = mock(KmsSymmetricCryptoProvider.class, withSettings()
+                kmsDefaultEncryptionCryptoProvider = mock(KmsDefaultEncryptionCryptoProvider.class, withSettings()
                         .useConstructor(mockAwsKms, testPrivateKeyId, mock(Map.class))
                         .defaultAnswer(CALLS_REAL_METHODS));
             }
@@ -103,11 +103,11 @@ class KmsSymmetricCryptoProviderTest {
             @Test
             @DisplayName("should call `JWEHeaderValidationUtil.validateJWEHeaderAlgorithms`.")
             void shouldThrowException() throws Exception {
-                kmsSymmetricCryptoProvider.validateJWEHeader(testJweHeader);
+                kmsDefaultEncryptionCryptoProvider.validateJWEHeader(testJweHeader);
                 mockJweHeaderValidationUtil.verify(() -> JWEHeaderValidationUtil.validateJWEHeaderAlgorithms(
                         testJweHeader,
-                        KmsSymmetricCryptoProvider.SUPPORTED_ALGORITHMS,
-                        KmsSymmetricCryptoProvider.SUPPORTED_ENCRYPTION_METHODS));
+                        KmsDefaultEncryptionCryptoProvider.SUPPORTED_ALGORITHMS,
+                        KmsDefaultEncryptionCryptoProvider.SUPPORTED_ENCRYPTION_METHODS));
 
             }
         }

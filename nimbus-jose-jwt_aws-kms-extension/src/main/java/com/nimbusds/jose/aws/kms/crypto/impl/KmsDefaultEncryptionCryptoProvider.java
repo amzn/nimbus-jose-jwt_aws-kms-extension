@@ -17,7 +17,6 @@
 package com.nimbusds.jose.aws.kms.crypto.impl;
 
 import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.DataKeySpec;
 import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -34,13 +33,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 
-
 /**
- * This class provides cryptography support for SYMMETRIC (AES based) encryption/decryption with keys stored in AWS
+ * This class provides cryptography support for Asymmetric and Symmetric encryption/decryption with keys stored in AWS
  * KMS.
  */
-public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
-
+public abstract class KmsDefaultEncryptionCryptoProvider extends PublicBaseJWEProvider {
     /**
      * AWS-KMS client.
      */
@@ -64,41 +61,32 @@ public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
 
     /**
      * The supported JWE algorithms (alg) by the AWS crypto provider class.
-     *
+     * <p>
      * Note: We are using KMS prescribed algorithm names here.
-     * Ref: https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose.html#key-spec-symmetric-default
+     * Ref: https://docs.aws.amazon.com/kms/latest/developerguide/asymmetric-key-specs.html
      */
     public static final Set<JWEAlgorithm> SUPPORTED_ALGORITHMS = ImmutableSet.of(
-            JWEAlgorithm.parse(EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.toString()));
+            JWEAlgorithm.parse(EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.name()),
+            JWEAlgorithm.parse(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_1.name()),
+            JWEAlgorithm.parse(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256.name()));
 
     /**
      * The supported JWE encryption methods (enc) by the AWS crypto provider class.
-     *
+     * <p>
      * Note: We are using JWE prescribed encryption method names here.
      */
-    public static final Set<EncryptionMethod> SUPPORTED_ENCRYPTION_METHODS = ImmutableSet.of(
-            EncryptionMethod.A128CBC_HS256,
-            EncryptionMethod.A256CBC_HS512,
-            EncryptionMethod.A128GCM,
-            EncryptionMethod.A256GCM);
-
-    public static final Map<EncryptionMethod, DataKeySpec> ENCRYPTION_METHOD_TO_DATA_KEY_SPEC_MAP =
-            ImmutableMap.<EncryptionMethod, DataKeySpec>builder()
-                    .put(EncryptionMethod.A256GCM, DataKeySpec.AES_256)
-                    .put(EncryptionMethod.A256CBC_HS512, DataKeySpec.AES_256)
-                    .put(EncryptionMethod.A128GCM, DataKeySpec.AES_128)
-                    .put(EncryptionMethod.A128CBC_HS256, DataKeySpec.AES_128)
-                    .build();
+    public static final Set<EncryptionMethod> SUPPORTED_ENCRYPTION_METHODS =
+            ContentCryptoProvider.SUPPORTED_ENCRYPTION_METHODS;
 
     public static final String ENCRYPTION_CONTEXT_HEADER = "ec";
 
-    protected KmsSymmetricCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId) {
+    protected KmsDefaultEncryptionCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId) {
         super(SUPPORTED_ALGORITHMS, ContentCryptoProvider.SUPPORTED_ENCRYPTION_METHODS);
         this.kms = kms;
         this.keyId = keyId;
     }
 
-    protected KmsSymmetricCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId,
+    protected KmsDefaultEncryptionCryptoProvider(@NonNull final AWSKMS kms, @NonNull final String keyId,
             @NonNull final Map<String, String> encryptionContext) {
         this(kms, keyId);
         this.encryptionContext = ImmutableMap.copyOf(encryptionContext);
