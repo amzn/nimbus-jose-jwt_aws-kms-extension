@@ -23,7 +23,7 @@ import static org.mockito.Mockito.withSettings;
 
 import com.amazonaws.services.kms.AWSKMS;
 import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.aws.kms.crypto.utils.JWEHeaderValidationUtil;
+import com.nimbusds.jose.aws.kms.crypto.utils.JWEHeaderUtil;
 import java.util.Map;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.AfterEach;
@@ -61,11 +61,11 @@ class KmsSymmetricCryptoProviderTest {
         @Mock
         private JWEHeader testJweHeader;
 
-        private MockedStatic<JWEHeaderValidationUtil> mockJweHeaderValidationUtil;
+        private MockedStatic<JWEHeaderUtil> mockJweHeaderValidationUtil;
 
         @BeforeEach
         void beforeEach() {
-            mockJweHeaderValidationUtil = mockStatic(JWEHeaderValidationUtil.class);
+            mockJweHeaderValidationUtil = mockStatic(JWEHeaderUtil.class);
         }
 
         @AfterEach
@@ -78,10 +78,10 @@ class KmsSymmetricCryptoProviderTest {
         class WithoutEncryptionContext {
 
             @Test
-            @DisplayName("should call `JWEHeaderValidationUtil.validateJWEHeaderAlgorithms`.")
+            @DisplayName("should call `JWEHeaderUtil.validateJWEHeaderAlgorithms`.")
             void shouldThrowException() throws Exception {
                 kmsSymmetricCryptoProvider.validateJWEHeader(testJweHeader);
-                mockJweHeaderValidationUtil.verify(() -> JWEHeaderValidationUtil.validateJWEHeaderAlgorithms(
+                mockJweHeaderValidationUtil.verify(() -> JWEHeaderUtil.validateJWEHeaderAlgorithms(
                         testJweHeader,
                         KmsSymmetricCryptoProvider.SUPPORTED_ALGORITHMS,
                         KmsSymmetricCryptoProvider.SUPPORTED_ENCRYPTION_METHODS));
@@ -101,10 +101,10 @@ class KmsSymmetricCryptoProviderTest {
             }
 
             @Test
-            @DisplayName("should call `JWEHeaderValidationUtil.validateJWEHeaderAlgorithms`.")
+            @DisplayName("should call `JWEHeaderUtil.validateJWEHeaderAlgorithms`.")
             void shouldThrowException() throws Exception {
                 kmsSymmetricCryptoProvider.validateJWEHeader(testJweHeader);
-                mockJweHeaderValidationUtil.verify(() -> JWEHeaderValidationUtil.validateJWEHeaderAlgorithms(
+                mockJweHeaderValidationUtil.verify(() -> JWEHeaderUtil.validateJWEHeaderAlgorithms(
                         testJweHeader,
                         KmsSymmetricCryptoProvider.SUPPORTED_ALGORITHMS,
                         KmsSymmetricCryptoProvider.SUPPORTED_ENCRYPTION_METHODS));
