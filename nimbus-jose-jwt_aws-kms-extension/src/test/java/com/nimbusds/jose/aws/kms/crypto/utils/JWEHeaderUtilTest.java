@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 
 @DisplayName("For the JWEHeaderUtil class,")
 class JWEHeaderUtilTest {
-    private EasyRandom random = EasyRandomTestUtils.getEasyRandomWithByteBufferSupport();
+    private final EasyRandom random = EasyRandomTestUtils.getEasyRandomWithByteBufferSupport();
 
     @Nested
     @DisplayName("the validateJWEHeaderAlgorithms method,")
@@ -137,7 +137,7 @@ class JWEHeaderUtilTest {
 
         private JWEHeader testHeader;
 
-        private String tesEncryptionContextHeaderName;
+        private String testEncryptionContextHeaderName;
 
         private Map<String, String> testEncryptionContext;
 
@@ -146,7 +146,7 @@ class JWEHeaderUtilTest {
             testHeader = new JWEHeader.Builder(
                     random.nextObject(JWEAlgorithm.class), random.nextObject(EncryptionMethod.class))
                     .build();
-            tesEncryptionContextHeaderName = random.nextObject(String.class);
+            testEncryptionContextHeaderName = random.nextObject(String.class);
         }
 
         @Nested
@@ -156,7 +156,7 @@ class JWEHeaderUtilTest {
             @DisplayName("should return the input header.")
             void shouldReturnInputHeader() {
                 final JWEHeader updatedHeader = JWEHeaderUtil.getJWEHeaderWithEncryptionContext(
-                        testHeader, tesEncryptionContextHeaderName, testEncryptionContext);
+                        testHeader, testEncryptionContextHeaderName, testEncryptionContext);
 
                 assertThat(updatedHeader).isSameAs(testHeader);
             }
@@ -170,14 +170,14 @@ class JWEHeaderUtilTest {
                 testEncryptionContext = random.nextObject(Map.class);
             }
             @Test
-            @DisplayName("should return the updated header with ecryption context.")
+            @DisplayName("should return the updated header with encryption context.")
             void shouldReturnUpdatedHeader() {
                 final JWEHeader updatedHeader = JWEHeaderUtil.getJWEHeaderWithEncryptionContext(
-                        testHeader, tesEncryptionContextHeaderName, testEncryptionContext);
+                        testHeader, testEncryptionContextHeaderName, testEncryptionContext);
 
                 assertThat(updatedHeader.getAlgorithm()).isEqualTo(testHeader.getAlgorithm());
                 assertThat(updatedHeader.getEncryptionMethod()).isEqualTo(testHeader.getEncryptionMethod());
-                assertThat(updatedHeader.getCustomParam(tesEncryptionContextHeaderName))
+                assertThat(updatedHeader.getCustomParam(testEncryptionContextHeaderName))
                         .isEqualTo(testEncryptionContext);
             }
         }
