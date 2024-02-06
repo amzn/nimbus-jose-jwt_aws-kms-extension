@@ -25,7 +25,7 @@ import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.aws.kms.crypto.utils.JWEHeaderValidationUtil;
+import com.nimbusds.jose.aws.kms.crypto.utils.JWEHeaderUtil;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.crypto.impl.PublicBaseJWEProvider;
 import java.util.Map;
@@ -105,6 +105,6 @@ public abstract class KmsSymmetricCryptoProvider extends PublicBaseJWEProvider {
     }
 
     protected void validateJWEHeader(@NonNull final JWEHeader header) throws JOSEException {
-        JWEHeaderValidationUtil.validateJWEHeaderAlgorithms(header, SUPPORTED_ALGORITHMS, SUPPORTED_ENCRYPTION_METHODS);
+        JWEHeaderUtil.validateJWEHeaderAlgorithms(header, SUPPORTED_ALGORITHMS, SUPPORTED_ENCRYPTION_METHODS);
     }
 }

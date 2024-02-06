@@ -16,6 +16,7 @@
 
 package com.nimbusds.jose.aws.kms.crypto.utils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -25,16 +26,21 @@ import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.aws.kms.crypto.testUtils.EasyRandomTestUtils;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
+import java.util.Map;
 import java.util.Set;
+import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-@DisplayName("For the JWEHeaderValidationUtil class,")
-class JWEHeaderValidationUtilTest {
+@DisplayName("For the JWEHeaderUtil class,")
+class JWEHeaderUtilTest {
+    private final EasyRandom random = EasyRandomTestUtils.getEasyRandomWithByteBufferSupport();
+
     @Nested
     @DisplayName("the validateJWEHeaderAlgorithms method,")
     class ValidateJWEHeaderMethod {
@@ -64,7 +70,7 @@ class JWEHeaderValidationUtilTest {
             @Test
             @DisplayName("should throw JOSEException.")
             void shouldThrowJOSEException() {
-                assertThatThrownBy(() -> JWEHeaderValidationUtil.validateJWEHeaderAlgorithms(
+                assertThatThrownBy(() -> JWEHeaderUtil.validateJWEHeaderAlgorithms(
                                 testJweHeader, testSupportedAlgorithms, testSupportedEncryptionMethods))
                         .isInstanceOf(JOSEException.class)
                         .hasMessage(AlgorithmSupportMessage.unsupportedJWEAlgorithm(
@@ -92,7 +98,7 @@ class JWEHeaderValidationUtilTest {
                 @Test
                 @DisplayName("should throw JOSEException.")
                 void shouldThrowJOSEException() {
-                    assertThatThrownBy(() -> JWEHeaderValidationUtil.validateJWEHeaderAlgorithms(
+                    assertThatThrownBy(() -> JWEHeaderUtil.validateJWEHeaderAlgorithms(
                             testJweHeader, testSupportedAlgorithms, testSupportedEncryptionMethods))
                             .isInstanceOf(JOSEException.class)
                             .hasMessage(AlgorithmSupportMessage.unsupportedEncryptionMethod(
@@ -118,9 +124,61 @@ class JWEHeaderValidationUtilTest {
                 @DisplayName("shouldn't throw any exception.")
                 void shouldThrowException() {
                     assertThatNoException()
-                            .isThrownBy(() -> JWEHeaderValidationUtil.validateJWEHeaderAlgorithms(
+                            .isThrownBy(() -> JWEHeaderUtil.validateJWEHeaderAlgorithms(
                                     testJweHeader, testSupportedAlgorithms, testSupportedEncryptionMethods));
                 }
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("the getJWEHeaderWithEncryptionContext method,")
+    class GetJWEHeaderWithEncryptionContextMethod {
+
+        private JWEHeader testHeader;
+
+        private String testEncryptionContextHeaderName;
+
+        private Map<String, String> testEncryptionContext;
+
+        @BeforeEach
+        void beforeEach() {
+            testHeader = new JWEHeader.Builder(
+                    random.nextObject(JWEAlgorithm.class), random.nextObject(EncryptionMethod.class))
+                    .build();
+            testEncryptionContextHeaderName = random.nextObject(String.class);
+        }
+
+        @Nested
+        @DisplayName("with null encryption context,")
+        class WithNullContext {
+            @Test
+            @DisplayName("should return the input header.")
+            void shouldReturnInputHeader() {
+                final JWEHeader updatedHeader = JWEHeaderUtil.getJWEHeaderWithEncryptionContext(
+                        testHeader, testEncryptionContextHeaderName, testEncryptionContext);
+
+                assertThat(updatedHeader).isSameAs(testHeader);
+            }
+        }
+
+        @Nested
+        @DisplayName("with non-null encryption context,")
+        class WithNonNullContext {
+            @BeforeEach
+            void beforeEach() {
+                testEncryptionContext = random.nextObject(Map.class);
+            }
+            @Test
+            @DisplayName("should return the updated header with encryption context.")
+            void shouldReturnUpdatedHeader() {
+                final JWEHeader updatedHeader = JWEHeaderUtil.getJWEHeaderWithEncryptionContext(
+                        testHeader, testEncryptionContextHeaderName, testEncryptionContext);
+
+                assertThat(updatedHeader.getAlgorithm()).isEqualTo(testHeader.getAlgorithm());
+                assertThat(updatedHeader.getEncryptionMethod()).isEqualTo(testHeader.getEncryptionMethod());
+                assertThat(updatedHeader.getCustomParam(testEncryptionContextHeaderName))
+                        .isEqualTo(testEncryptionContext);
             }
         }
     }
