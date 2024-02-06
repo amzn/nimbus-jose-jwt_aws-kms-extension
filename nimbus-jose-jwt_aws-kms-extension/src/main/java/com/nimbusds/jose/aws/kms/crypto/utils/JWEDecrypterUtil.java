@@ -14,6 +14,7 @@ import com.amazonaws.services.kms.model.NotFoundException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
+import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.RemoteKeySourceException;
 import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
@@ -31,6 +32,13 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class JWEDecrypterUtil {
 
+    /**
+     * Decrypts the specified cipher text of a {@link JWEObject JWE Object}.
+     *
+     * @throws {@link JOSEException}
+     * @throws {@link RemoteKeySourceException}
+     * @throws {@link TemporaryJOSEException}
+     */
     public byte[] decrypt(
             AWSKMS kms,
             String keyId,
