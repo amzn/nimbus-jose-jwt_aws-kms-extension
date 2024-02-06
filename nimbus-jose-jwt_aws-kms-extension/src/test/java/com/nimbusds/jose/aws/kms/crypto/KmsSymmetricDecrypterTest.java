@@ -167,6 +167,10 @@ class KmsSymmetricDecrypterTest {
         @DisplayName("with critical header,")
         class WithCriticalHeader {
 
+            @Mock
+            private JWEJCAContext mockJWEJCAContext;
+            @Mock
+            JWEDecrypterUtil jweDecrypterUtil;
             private final DecryptResult testDecryptResult = random.nextObject(DecryptResult.class);
             private final MockedStatic<ContentCryptoProvider> mockContentCryptoProvider =
                     mockStatic(ContentCryptoProvider.class);
@@ -188,16 +192,12 @@ class KmsSymmetricDecrypterTest {
                                                 testJweHeader.getAlgorithm().toString()),
                                         kmsSymmetricDecrypter.getJCAContext()))
                         .thenReturn(expectedData);
+                when(kmsSymmetricDecrypter.getJCAContext()).thenReturn(mockJWEJCAContext);
             }
 
             @Nested
-            @DisplayName("with decryption from JWEDecrypterUtil,")
-            class WithDecryptionFromJWEDecrypterUtil {
-
-                @Mock
-                private JWEJCAContext mockJWEJCAContext;
-                @Mock
-                JWEDecrypterUtil jweDecrypterUtil;
+            @DisplayName("with exception thrown from JWEDecrypterUtil,")
+            class WithExceptionThrownFromJWEDecrypterUtil {
 
                 @ParameterizedTest
                 @SneakyThrows
@@ -207,20 +207,23 @@ class KmsSymmetricDecrypterTest {
                 })
                 void shouldThrowException(final Class<Throwable> exceptionClass) {
                     try (MockedStatic<JWEDecrypterUtil> utilMockedStatic = mockStatic(JWEDecrypterUtil.class)) {
-                        when(kmsSymmetricDecrypter.getJCAContext()).thenReturn(mockJWEJCAContext);
-                        when(jweDecrypterUtil.decrypt(mockAwsKms, testKeyId, testEncryptionContext,
-                                testJweHeader, testEncryptedKey, testIv, testCipherText,
-                                testAuthTag, mockJWEJCAContext))
+                        utilMockedStatic.when(() -> jweDecrypterUtil.decrypt(mockAwsKms, testKeyId, testEncryptionContext,
+                                        testJweHeader, testEncryptedKey, testIv, testCipherText,
+                                        testAuthTag, mockJWEJCAContext))
                                 .thenThrow(exceptionClass);
                         assertThrows(exceptionClass, () -> kmsSymmetricDecrypter.decrypt(
                                 testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag));
                     }
                 }
+            }
 
-                @Test
+            @Nested
+            @DisplayName("with decryption result from JWEDecrypterUtil,")
+            class WithDecryptionResultFromJWEDecrypterUtil {
+
+                @BeforeEach
                 @SneakyThrows
-                void shouldReturnResult() {
-                    when(kmsSymmetricDecrypter.getJCAContext()).thenReturn(mockJWEJCAContext);
+                void beforeEach() {
                     when(mockAwsKms
                             .decrypt(new DecryptRequest()
                                     .withEncryptionContext(testEncryptionContext)
@@ -232,27 +235,12 @@ class KmsSymmetricDecrypterTest {
                             testJweHeader, testEncryptedKey, testIv, testCipherText,
                             testAuthTag, mockJWEJCAContext))
                             .thenReturn(expectedData);
-                    final byte[] actualData = kmsSymmetricDecrypter.decrypt(
-                            testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag);
-                    assertThat(actualData).isEqualTo(expectedData);
                 }
-            }
-
-            @Nested
-            @DisplayName("with a decryption result from KMS,")
-            class WithDecryptionResultFromKMS {
 
                 @Test
                 @DisplayName("should return decrypted data.")
                 @SneakyThrows
                 void shouldReturnDecryptedData() {
-                    when(mockAwsKms
-                            .decrypt(new DecryptRequest()
-                                    .withEncryptionContext(testEncryptionContext)
-                                    .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
-                                    .withKeyId(testKeyId)
-                                    .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
-                            .thenReturn(testDecryptResult);
                     final byte[] actualData = kmsSymmetricDecrypter.decrypt(
                             testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag);
                     assertThat(actualData).isEqualTo(expectedData);
