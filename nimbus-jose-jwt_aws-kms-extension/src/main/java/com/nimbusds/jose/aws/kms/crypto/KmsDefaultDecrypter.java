@@ -21,23 +21,21 @@ import com.nimbusds.jose.CriticalHeaderParamsAware;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEDecrypter;
 import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
+import com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider;
 import com.nimbusds.jose.aws.kms.crypto.utils.JWEDecrypterUtil;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.util.Base64URL;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.concurrent.ThreadSafe;
 import lombok.NonNull;
 
 /**
- * Decrypter implementation for SYMMETRIC (AES based) signing with public/private key stored in AWS KMS.
+ * Decrypter implementation for a symmetric or asymmetric key stored in AWS KMS.
  * <p>
- * See {@link KmsSymmetricCryptoProvider} for supported algorithms and encryption methods, and for details of various
- * constructor parameters.
+ * See {@link KmsDefaultEncryptionCryptoProvider} for supported algorithms and encryption methods,
+ * and for details of various constructor parameters.
  */
-@ThreadSafe
-public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements JWEDecrypter,
+public class KmsDefaultDecrypter extends KmsDefaultEncryptionCryptoProvider implements JWEDecrypter,
         CriticalHeaderParamsAware {
 
     /**
@@ -45,23 +43,28 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
      */
     private final CriticalHeaderParamsDeferral critPolicy = new CriticalHeaderParamsDeferral();
 
-    public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
-            @NonNull final Map<String, String> encryptionContext) {
+    public KmsDefaultDecrypter(@NonNull final AWSKMS kms,
+                               @NonNull final String keyId,
+                               @NonNull final Map<String, String> encryptionContext) {
         super(kms, keyId, encryptionContext);
     }
 
-    public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId) {
+    public KmsDefaultDecrypter(@NonNull final AWSKMS kms,
+                               @NonNull final String keyId) {
         super(kms, keyId);
     }
 
-    public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
-            @NonNull final Set<String> defCritHeaders) {
+    public KmsDefaultDecrypter(@NonNull final AWSKMS kms,
+                               @NonNull final String keyId,
+                               @NonNull final Set<String> defCritHeaders) {
         this(kms, keyId);
         critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
     }
 
-    public KmsSymmetricDecrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
-            @NonNull final Map<String, String> encryptionContext, @NonNull final Set<String> defCritHeaders) {
+    public KmsDefaultDecrypter(@NonNull final AWSKMS kms,
+                               @NonNull final String keyId,
+                               @NonNull final Map<String, String> encryptionContext,
+                               @NonNull final Set<String> defCritHeaders) {
         this(kms, keyId, encryptionContext);
         critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
     }
@@ -76,6 +79,9 @@ public class KmsSymmetricDecrypter extends KmsSymmetricCryptoProvider implements
         return critPolicy.getDeferredCriticalHeaderParams();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public byte[] decrypt(
             @NonNull final JWEHeader header,
