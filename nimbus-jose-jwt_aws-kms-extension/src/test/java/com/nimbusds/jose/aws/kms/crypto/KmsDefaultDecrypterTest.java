@@ -167,11 +167,14 @@ public class KmsDefaultDecrypterTest {
         @DisplayName("with critical header,")
         class WithCriticalHeader {
 
+            @Mock
+            private JWEJCAContext mockJWEJCAContext;
+            @Mock
+            JWEDecrypterUtil jweDecrypterUtil;
             private final DecryptResult testDecryptResult = random.nextObject(DecryptResult.class);
             private final MockedStatic<ContentCryptoProvider> mockContentCryptoProvider =
                     mockStatic(ContentCryptoProvider.class);
             private byte[] expectedData = new byte[random.nextInt(512)];
-
 
             @BeforeEach
             @SneakyThrows
@@ -190,39 +193,38 @@ public class KmsDefaultDecrypterTest {
                                                 testJweHeader.getAlgorithm().toString()),
                                         kmsDefaultDecrypter.getJCAContext()))
                         .thenReturn(expectedData);
+                when(kmsDefaultDecrypter.getJCAContext()).thenReturn(mockJWEJCAContext);
             }
 
             @Nested
-            @DisplayName("with decryption from JWEDecrypterUtil,")
-            class WithDecryptionFromJWEDecrypterUtil {
-
-                @Mock
-                private JWEJCAContext mockJWEJCAContext;
-                @Mock
-                JWEDecrypterUtil jweDecrypterUtil;
+            @DisplayName("with exception thrown from JWEDecrypterUtil,")
+            class WithExceptionThrownFromJWEDecrypterUtil {
 
                 @ParameterizedTest
                 @SneakyThrows
-                @DisplayName("should throw exception,")
+                @DisplayName("should throw exception.")
                 @ValueSource(classes = {
                         JOSEException.class, RemoteKeySourceException.class, TemporaryJOSEException.class
                 })
                 void shouldThrowException(final Class<Throwable> exceptionClass) {
                     try (MockedStatic<JWEDecrypterUtil> utilMockedStatic = mockStatic(JWEDecrypterUtil.class)) {
-                        when(kmsDefaultDecrypter.getJCAContext()).thenReturn(mockJWEJCAContext);
-                        when(jweDecrypterUtil.decrypt(mockAwsKms, testKeyId, testEncryptionContext,
-                                testJweHeader, testEncryptedKey, testIv, testCipherText,
-                                testAuthTag, mockJWEJCAContext))
+                        utilMockedStatic.when(() -> jweDecrypterUtil.decrypt(mockAwsKms, testKeyId, testEncryptionContext,
+                                        testJweHeader, testEncryptedKey, testIv, testCipherText,
+                                        testAuthTag, mockJWEJCAContext))
                                 .thenThrow(exceptionClass);
                         assertThrows(exceptionClass, () -> kmsDefaultDecrypter.decrypt(
                                 testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag));
                     }
                 }
+            }
 
-                @Test
+            @Nested
+            @DisplayName("with decryption result from JWEDecrypterUtil,")
+            class WithDecryptionResultFromJWEDecrypterUtil {
+
+                @BeforeEach
                 @SneakyThrows
-                void shouldReturnResult() {
-                    when(kmsDefaultDecrypter.getJCAContext()).thenReturn(mockJWEJCAContext);
+                void beforeEach() {
                     when(mockAwsKms
                             .decrypt(new DecryptRequest()
                                     .withEncryptionContext(testEncryptionContext)
@@ -234,27 +236,12 @@ public class KmsDefaultDecrypterTest {
                             testJweHeader, testEncryptedKey, testIv, testCipherText,
                             testAuthTag, mockJWEJCAContext))
                             .thenReturn(expectedData);
-                    final byte[] actualData = kmsDefaultDecrypter.decrypt(
-                            testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag);
-                    assertThat(actualData).isEqualTo(expectedData);
                 }
-            }
-
-            @Nested
-            @DisplayName("with a decryption result from KMS,")
-            class WithDecryptionResultFromKMS {
 
                 @Test
                 @DisplayName("should return decrypted data.")
                 @SneakyThrows
                 void shouldReturnDecryptedData() {
-                    when(mockAwsKms
-                            .decrypt(new DecryptRequest()
-                                    .withEncryptionContext(testEncryptionContext)
-                                    .withKeyId(testKeyId)
-                                    .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
-                                    .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
-                            .thenReturn(testDecryptResult);
                     final byte[] actualData = kmsDefaultDecrypter.decrypt(
                             testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag);
                     assertThat(actualData).isEqualTo(expectedData);
@@ -266,7 +253,6 @@ public class KmsDefaultDecrypterTest {
             void afterEach() {
                 mockContentCryptoProvider.close();
             }
-
         }
 
         @AfterEach
