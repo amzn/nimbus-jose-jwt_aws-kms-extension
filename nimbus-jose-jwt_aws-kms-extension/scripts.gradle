@@ -35,6 +35,14 @@ task kmsDefaultJWEEncrypt(type: JavaExec) {
     args = propertiesToArgumentMapper(project.getProperties(), ['alg', 'enc', 'kid', 'payload', 'help'])
 }
 
+task kmsDefaultJWEDecrypt(type: JavaExec) {
+    group = 'Execution'
+    description = 'Run the main class with JavaExecTask'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.nimbusds.jose.aws.kms.scripts.KmsDefaultJweCompactDecrypterScript'
+    args = propertiesToArgumentMapper(project.getProperties(), ['jweToken', 'help'])
+}
+
 task kmsAsymmetricJWSSign(type: JavaExec) {
     group = 'Execution'
     description = 'Run the main class with JavaExecTask'
