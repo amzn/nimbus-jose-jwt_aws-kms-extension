@@ -11,12 +11,23 @@ In the current version following encryption and signing operations are supported
 1. Symmetric encryption (AES based).
     1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsSymmetricEncrypter`
        and `com.nimbusds.jose.aws.kms.crypto.KmsSymmetricDecrypter`
-2. Asymmetric signing (RSA or ECDSA based).
+1. Asymmetric or Symmetric encryption (RSA or ECDSA based for asymmetric keys and AES based for symmetric keys).
+    1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsDefaultEncrypter`
+       and `com.nimbusds.jose.aws.kms.crypto.KmsDefaultDecrypter`
+1. Asymmetric signing (RSA or ECDSA based).
     1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricSigner`
        and `com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricVerifier`
 
 Above classes should be used in the same way any encryption or signing class, which is directly provided by
 nimbus-jose-jwt, is used.
+
+*Note:* For encryption using symmetric KMS keys, you can use either the `KmsDefaultEncrypter` class or the
+`KmsSymmetricEncrypter` class (and similarly can use `KmsDefaultDecrypter` or `KmsSymmetricDecrypter`, for decryption).
+The difference between these two classes is that `KmsDefaultEncrypter` generates an in-memory CEK and sends it to KMS
+for encryption using KMS's [Encrypt](https://docs.aws.amazon.com/kms/latest/APIReference/API_Encrypt.html) API, while
+`KmsSymmetricEncrypter` uses KMS's
+[GenerateDataKey](https://docs.aws.amazon.com/kms/latest/APIReference/API_GenerateDataKey.html) API to generate the CEK
+and fetch its plaintext and encrypted versions.
 
 ## Encryption Example (Java 11)
 
