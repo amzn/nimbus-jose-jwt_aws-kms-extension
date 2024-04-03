@@ -35,9 +35,9 @@ public class JWEDecrypterUtil {
     /**
      * Decrypts the specified cipher text of a {@link JWEObject JWE Object}.
      *
-     * @throws {@link JOSEException}
-     * @throws {@link RemoteKeySourceException}
-     * @throws {@link TemporaryJOSEException}
+     * @throws JOSEException
+     * @throws RemoteKeySourceException
+     * @throws TemporaryJOSEException
      */
     public byte[] decrypt(
             AWSKMS kms,
