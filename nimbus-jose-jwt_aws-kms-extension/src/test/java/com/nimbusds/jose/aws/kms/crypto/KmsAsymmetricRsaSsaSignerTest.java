@@ -16,6 +16,7 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricSigningCryptoProvider.JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
@@ -90,7 +91,7 @@ public class KmsAsymmetricRsaSsaSignerTest {
         @BeforeEach
         @SneakyThrows
         void beforeEach() {
-            testJweHeader = new JWSHeader.Builder(random.nextObject(JWSAlgorithm.class)).build();
+            testJweHeader = new JWSHeader.Builder(JWSAlgorithm.PS512).build();
 
             testSigningInput = new byte[random.nextInt(512)];
             random.nextBytes(testSigningInput);
@@ -118,7 +119,7 @@ public class KmsAsymmetricRsaSsaSignerTest {
                                 .withKeyId(testPrivateKeyId)
                                 .withMessageType(testMessageType)
                                 .withMessage(mockMessage)
-                                .withSigningAlgorithm(testJweHeader.getAlgorithm().toString())))
+                                .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())))
                         .thenThrow(mockInvalidSigningException);
                 return mockInvalidSigningException;
             }
@@ -149,7 +150,7 @@ public class KmsAsymmetricRsaSsaSignerTest {
                                 .withKeyId(testPrivateKeyId)
                                 .withMessageType(testMessageType)
                                 .withMessage(mockMessage)
-                                .withSigningAlgorithm(testJweHeader.getAlgorithm().toString())))
+                                .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())))
                         .thenThrow(mockTemporaryKmsException);
                 return mockTemporaryKmsException;
             }
@@ -183,7 +184,7 @@ public class KmsAsymmetricRsaSsaSignerTest {
                                 .withKeyId(testPrivateKeyId)
                                 .withMessageType(testMessageType)
                                 .withMessage(mockMessage)
-                                .withSigningAlgorithm(testJweHeader.getAlgorithm().toString())))
+                                .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())))
                         .thenReturn(mockSignResult);
 
                 final var testSignatureByteBuffer = ByteBuffer.allocate(random.nextInt(512));

@@ -16,6 +16,7 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricSigningCryptoProvider.JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
@@ -134,7 +135,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
 
         @BeforeEach
         void beforeEach() {
-            testJweHeader = new JWSHeader.Builder(random.nextObject(JWSAlgorithm.class))
+            testJweHeader = new JWSHeader.Builder(JWSAlgorithm.PS512)
                     .criticalParams(testCriticalHeaders)
                     .build();
 
@@ -198,7 +199,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                     when(mockAwsKms
                             .verify(new VerifyRequest()
                                     .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(testJweHeader.getAlgorithm().toString())
+                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
                                     .withMessageType(testMessageType)
                                     .withMessage(mockMessage)
                                     .withSignature(ByteBuffer.wrap(testSignature.decode()))))
@@ -231,7 +232,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                     when(mockAwsKms
                             .verify(new VerifyRequest()
                                     .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(testJweHeader.getAlgorithm().toString())
+                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
                                     .withMessageType(testMessageType)
                                     .withMessage(mockMessage)
                                     .withSignature(ByteBuffer.wrap(testSignature.decode()))))
@@ -265,7 +266,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                     when(mockAwsKms
                             .verify(new VerifyRequest()
                                     .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(testJweHeader.getAlgorithm().toString())
+                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
                                     .withMessageType(testMessageType)
                                     .withMessage(mockMessage)
                                     .withSignature(ByteBuffer.wrap(testSignature.decode()))))
@@ -294,7 +295,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                     when(mockAwsKms
                             .verify(new VerifyRequest()
                                     .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(testJweHeader.getAlgorithm().toString())
+                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
                                     .withMessageType(testMessageType)
                                     .withMessage(mockMessage)
                                     .withSignature(ByteBuffer.wrap(testSignature.decode()))))
@@ -325,7 +326,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                     when(mockAwsKms
                             .verify(new VerifyRequest()
                                     .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(testJweHeader.getAlgorithm().toString())
+                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
                                     .withMessageType(testMessageType)
                                     .withMessage(mockMessage)
                                     .withSignature(ByteBuffer.wrap(testSignature.decode()))))

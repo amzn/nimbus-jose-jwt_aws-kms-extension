@@ -65,7 +65,7 @@ public class KmsAsymmetricSigner extends KmsAsymmetricSigningCryptoProvider impl
                     .withKeyId(getPrivateKeyId())
                     .withMessageType(getMessageType())
                     .withMessage(message)
-                    .withSigningAlgorithm(header.getAlgorithm().toString()));
+                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(header.getAlgorithm()).toString()));
         } catch (NotFoundException | DisabledException | KeyUnavailableException | InvalidKeyUsageException
                 | KMSInvalidStateException e) {
             throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid key.", e);

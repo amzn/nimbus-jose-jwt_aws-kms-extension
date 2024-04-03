@@ -66,33 +66,40 @@ public abstract class KmsAsymmetricSigningCryptoProvider extends BaseJWSProvider
 
     public static final Map<JWSAlgorithm, String> JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM =
             ImmutableMap.<JWSAlgorithm, String>builder()
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256.toString()),
-                            MessageDigestAlgorithms.SHA_256)
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384.toString()),
-                            MessageDigestAlgorithms.SHA_384)
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512.toString()),
-                            MessageDigestAlgorithms.SHA_512)
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_256.toString()),
-                            MessageDigestAlgorithms.SHA_256)
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_384.toString()),
-                            MessageDigestAlgorithms.SHA_384)
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()),
-                            MessageDigestAlgorithms.SHA_512)
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_256.toString()),
-                            MessageDigestAlgorithms.SHA_256)
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_384.toString()),
-                            MessageDigestAlgorithms.SHA_384)
-                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_512.toString()),
-                            MessageDigestAlgorithms.SHA_512)
+                    .put(JWSAlgorithm.RS256, MessageDigestAlgorithms.SHA_256)
+                    .put(JWSAlgorithm.RS384, MessageDigestAlgorithms.SHA_384)
+                    .put(JWSAlgorithm.RS512, MessageDigestAlgorithms.SHA_512)
+                    .put(JWSAlgorithm.PS256, MessageDigestAlgorithms.SHA_256)
+                    .put(JWSAlgorithm.PS384, MessageDigestAlgorithms.SHA_384)
+                    .put(JWSAlgorithm.PS512, MessageDigestAlgorithms.SHA_512)
+                    .put(JWSAlgorithm.ES256, MessageDigestAlgorithms.SHA_256)
+                    .put(JWSAlgorithm.ES384, MessageDigestAlgorithms.SHA_384)
+                    .put(JWSAlgorithm.ES512, MessageDigestAlgorithms.SHA_512)
                     .build();
 
+    public static final Map<JWSAlgorithm, SigningAlgorithmSpec> JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC =
+            ImmutableMap.<JWSAlgorithm, SigningAlgorithmSpec>builder()
+                    .put(JWSAlgorithm.RS256, SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
+                    .put(JWSAlgorithm.RS384, SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384)
+                    .put(JWSAlgorithm.RS512, SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512)
+                    .put(JWSAlgorithm.PS256, SigningAlgorithmSpec.RSASSA_PSS_SHA_256)
+                    .put(JWSAlgorithm.PS384, SigningAlgorithmSpec.RSASSA_PSS_SHA_384)
+                    .put(JWSAlgorithm.PS512, SigningAlgorithmSpec.RSASSA_PSS_SHA_512)
+                    .put(JWSAlgorithm.ES256, SigningAlgorithmSpec.ECDSA_SHA_256)
+                    .put(JWSAlgorithm.ES384, SigningAlgorithmSpec.ECDSA_SHA_384)
+                    .put(JWSAlgorithm.ES512, SigningAlgorithmSpec.ECDSA_SHA_512)
+                    .build();
     /**
      * The supported JWS algorithms (alg).
      * <p>
-     * Note: We are using KMS prescribed algorithm names here.
-     * Ref: https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose.html#key-spec-rsa-sign
+     * Note: We accept the algorithms defined in RFC-7518 and translate these internally to KMS strings.
+     *
+     * @see <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.1">RFC-7518 Section 3.1</a>
+     * @see <a href="https://docs.aws.amazon.com/kms/latest/developerguide/asymmetric-key-specs.html">
+     *     AWS Developer Guide - Asymmetric key specs
+     *     </a>
      */
-    public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = JWS_ALGORITHM_TO_MESSAGE_DIGEST_ALGORITHM.keySet();
+    public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.keySet();
 
     protected KmsAsymmetricSigningCryptoProvider(
             @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {

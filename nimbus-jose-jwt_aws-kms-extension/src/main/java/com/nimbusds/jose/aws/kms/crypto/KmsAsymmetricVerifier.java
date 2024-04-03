@@ -105,7 +105,7 @@ public class KmsAsymmetricVerifier
         try {
             verifyResult = getKms().verify(new VerifyRequest()
                     .withKeyId(getPrivateKeyId())
-                    .withSigningAlgorithm(header.getAlgorithm().toString())
+                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(header.getAlgorithm()).toString())
                     .withMessageType(getMessageType())
                     .withMessage(message)
                     .withSignature(ByteBuffer.wrap(signature.decode())));
@@ -120,4 +120,5 @@ public class KmsAsymmetricVerifier
 
         return verifyResult.isSignatureValid();
     }
+
 }
