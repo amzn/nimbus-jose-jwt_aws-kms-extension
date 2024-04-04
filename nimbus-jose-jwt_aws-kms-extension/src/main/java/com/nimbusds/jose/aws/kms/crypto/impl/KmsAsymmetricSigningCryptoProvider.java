@@ -75,6 +75,25 @@ public abstract class KmsAsymmetricSigningCryptoProvider extends BaseJWSProvider
                     .put(JWSAlgorithm.ES256, MessageDigestAlgorithms.SHA_256)
                     .put(JWSAlgorithm.ES384, MessageDigestAlgorithms.SHA_384)
                     .put(JWSAlgorithm.ES512, MessageDigestAlgorithms.SHA_512)
+                    // backwards compatibility for KMS-defined algorithm strings
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256.toString()),
+                            MessageDigestAlgorithms.SHA_256)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384.toString()),
+                            MessageDigestAlgorithms.SHA_384)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512.toString()),
+                            MessageDigestAlgorithms.SHA_512)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_256.toString()),
+                            MessageDigestAlgorithms.SHA_256)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_384.toString()),
+                            MessageDigestAlgorithms.SHA_384)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()),
+                            MessageDigestAlgorithms.SHA_512)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_256.toString()),
+                            MessageDigestAlgorithms.SHA_256)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_384.toString()),
+                            MessageDigestAlgorithms.SHA_384)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_512.toString()),
+                            MessageDigestAlgorithms.SHA_512)
                     .build();
 
     public static final Map<JWSAlgorithm, SigningAlgorithmSpec> JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC =
@@ -88,6 +107,25 @@ public abstract class KmsAsymmetricSigningCryptoProvider extends BaseJWSProvider
                     .put(JWSAlgorithm.ES256, SigningAlgorithmSpec.ECDSA_SHA_256)
                     .put(JWSAlgorithm.ES384, SigningAlgorithmSpec.ECDSA_SHA_384)
                     .put(JWSAlgorithm.ES512, SigningAlgorithmSpec.ECDSA_SHA_512)
+                    // backwards compatibility for KMS-defined algorithm strings
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256.toString()),
+                            SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384.toString()),
+                            SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512.toString()),
+                            SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_256.toString()),
+                            SigningAlgorithmSpec.RSASSA_PSS_SHA_256)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_384.toString()),
+                            SigningAlgorithmSpec.RSASSA_PSS_SHA_384)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()),
+                            SigningAlgorithmSpec.RSASSA_PSS_SHA_512)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_256.toString()),
+                            SigningAlgorithmSpec.ECDSA_SHA_256)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_384.toString()),
+                            SigningAlgorithmSpec.ECDSA_SHA_384)
+                    .put(JWSAlgorithm.parse(SigningAlgorithmSpec.ECDSA_SHA_512.toString()),
+                            SigningAlgorithmSpec.ECDSA_SHA_512)
                     .build();
     /**
      * The supported JWS algorithms (alg).
