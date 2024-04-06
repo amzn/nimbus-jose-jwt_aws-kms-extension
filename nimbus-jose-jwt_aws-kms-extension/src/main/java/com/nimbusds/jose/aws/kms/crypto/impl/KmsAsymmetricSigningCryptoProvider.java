@@ -107,7 +107,7 @@ public abstract class KmsAsymmetricSigningCryptoProvider extends BaseJWSProvider
                     .put(JWSAlgorithm.ES256, SigningAlgorithmSpec.ECDSA_SHA_256)
                     .put(JWSAlgorithm.ES384, SigningAlgorithmSpec.ECDSA_SHA_384)
                     .put(JWSAlgorithm.ES512, SigningAlgorithmSpec.ECDSA_SHA_512)
-                    // backwards compatibility for KMS-defined algorithm strings
+                    // Compatibility for KMS-defined algorithm strings
                     .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256.toString()),
                             SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
                     .put(JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384.toString()),
@@ -130,7 +130,7 @@ public abstract class KmsAsymmetricSigningCryptoProvider extends BaseJWSProvider
     /**
      * The supported JWS algorithms (alg).
      * <p>
-     * Note: We accept the algorithms defined in RFC-7518 and translate these internally to KMS strings.
+     * Note: We accept both the algorithms defined in RFC-7518 and KMS-defined strings.
      *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.1">RFC-7518 Section 3.1</a>
      * @see <a href="https://docs.aws.amazon.com/kms/latest/developerguide/asymmetric-key-specs.html">
