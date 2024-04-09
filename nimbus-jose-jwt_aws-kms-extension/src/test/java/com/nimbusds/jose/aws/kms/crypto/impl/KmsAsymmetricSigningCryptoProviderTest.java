@@ -112,9 +112,7 @@ public class KmsAsymmetricSigningCryptoProviderTest {
 
             @BeforeEach
             void beforeEach() {
-                testJwsHeader = new JWSHeader.Builder(
-                        JWSAlgorithm.parse(SigningAlgorithmSpec.RSASSA_PSS_SHA_512.toString()))
-                        .build();
+                testJwsHeader = new JWSHeader.Builder(JWSAlgorithm.PS512).build();
                 testSigningInputBytes = "Test Payload / ٹیسٹ پیلوڈ".getBytes(StandardCharsets.UTF_8);
                 expectedMessage = ByteBuffer.wrap(testSigningInputBytes);
             }
