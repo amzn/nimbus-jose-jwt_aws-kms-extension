@@ -16,23 +16,24 @@
 
 package com.nimbusds.jose.aws.kms.scripts;
 
-import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
-import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.MESSAGE_TYPE;
-import static java.lang.System.out;
-
-import com.amazonaws.services.kms.AWSKMSClientBuilder;
-import com.amazonaws.services.kms.model.MessageType;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricVerifier;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.MessageType;
+
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.MESSAGE_TYPE;
+import static java.lang.System.out;
 
 /**
  * Script to verify a text payload using a KMS Symmetric CMK and generate a JWE token.
@@ -119,10 +120,10 @@ public class KmsAsymmetricJwsCompactVerifierScript {
         return jwsObject.verify(
                 Objects.nonNull(defCritHeaders) ?
                         new KmsAsymmetricVerifier(
-                                AWSKMSClientBuilder.defaultClient(), jwsObject.getHeader().getKeyID(), messageType,
+                                KmsClient.create(), jwsObject.getHeader().getKeyID(), messageType,
                                 defCritHeaders)
                         : new KmsAsymmetricVerifier(
-                                AWSKMSClientBuilder.defaultClient(), jwsObject.getHeader().getKeyID(), messageType));
+                        KmsClient.create(), jwsObject.getHeader().getKeyID(), messageType));
     }
 }
 

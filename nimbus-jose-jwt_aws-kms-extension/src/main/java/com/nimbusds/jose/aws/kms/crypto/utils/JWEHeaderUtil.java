@@ -6,11 +6,12 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
+import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 
 /**
  * Utility class containing JWE header related methods.
@@ -47,7 +48,7 @@ public class JWEHeaderUtil {
     public JWEHeader getJWEHeaderWithEncryptionContext(
             @NonNull final JWEHeader header,
             @NonNull String encryptionContextHeaderName,
-            Map<String, String>  encryptionContext) {
+            Map<String, String> encryptionContext) {
 
         JWEHeader updatedHeader;
         if (Objects.nonNull(encryptionContext)) {

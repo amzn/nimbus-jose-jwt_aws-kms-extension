@@ -16,34 +16,21 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.DependencyTimeoutException;
-import com.amazonaws.services.kms.model.DisabledException;
-import com.amazonaws.services.kms.model.EncryptRequest;
-import com.amazonaws.services.kms.model.EncryptResult;
-import com.amazonaws.services.kms.model.InvalidGrantTokenException;
-import com.amazonaws.services.kms.model.InvalidKeyUsageException;
-import com.amazonaws.services.kms.model.KMSInternalException;
-import com.amazonaws.services.kms.model.KMSInvalidStateException;
-import com.amazonaws.services.kms.model.KeyUnavailableException;
-import com.amazonaws.services.kms.model.NotFoundException;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWECryptoParts;
-import com.nimbusds.jose.JWEEncrypter;
-import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.RemoteKeySourceException;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider;
-import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.aws.kms.crypto.utils.JWEHeaderUtil;
 import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.util.Base64URL;
-import java.nio.ByteBuffer;
-import java.util.Map;
+import lombok.NonNull;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.*;
+
 import javax.annotation.concurrent.ThreadSafe;
 import javax.crypto.SecretKey;
-import lombok.NonNull;
+import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
  * Encrypter implementation for a symmetric or asymmetric key stored in AWS KMS.
@@ -54,12 +41,12 @@ import lombok.NonNull;
 @ThreadSafe
 public class KmsDefaultEncrypter extends KmsDefaultEncryptionCryptoProvider implements JWEEncrypter {
 
-    public KmsDefaultEncrypter(@NonNull final AWSKMS kms, @NonNull final String keyId) {
+    public KmsDefaultEncrypter(@NonNull final KmsClient kms, @NonNull final String keyId) {
         super(kms, keyId);
     }
 
-    public KmsDefaultEncrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
-            @NonNull final Map<String, String> encryptionContext) {
+    public KmsDefaultEncrypter(@NonNull final KmsClient kms, @NonNull final String keyId,
+                               @NonNull final Map<String, String> encryptionContext) {
         super(kms, keyId, encryptionContext);
     }
 
@@ -77,24 +64,25 @@ public class KmsDefaultEncrypter extends KmsDefaultEncryptionCryptoProvider impl
         final SecretKey cek = ContentCryptoProvider.generateCEK(
                 updatedHeader.getEncryptionMethod(), getJCAContext().getSecureRandom());
 
-        final EncryptResult encryptedKey = encryptCEK(getKeyId(), updatedHeader.getAlgorithm(), getEncryptionContext(), cek);
-        final Base64URL encodedEncryptedKey = Base64URL.encode(encryptedKey.getCiphertextBlob().array());
+        final EncryptResponse encryptedKey = encryptCEK(getKeyId(), updatedHeader.getAlgorithm(), getEncryptionContext(), cek);
+        final Base64URL encodedEncryptedKey = Base64URL.encode(encryptedKey.ciphertextBlob().asByteArray());
 
         return ContentCryptoProvider.encrypt(updatedHeader, clearText, cek, encodedEncryptedKey, getJCAContext());
     }
 
-    private EncryptResult encryptCEK(String keyId, JWEAlgorithm alg, Map<String, String> encryptionContext, SecretKey cek)
+    private EncryptResponse encryptCEK(String keyId, JWEAlgorithm alg, Map<String, String> encryptionContext, SecretKey cek)
             throws JOSEException {
         try {
-            return getKms().encrypt(new EncryptRequest()
-                    .withKeyId(keyId)
-                    .withEncryptionAlgorithm(alg.getName())
-                    .withPlaintext(ByteBuffer.wrap(cek.getEncoded()))
-                    .withEncryptionContext(encryptionContext));
+            return getKms().encrypt(EncryptRequest.builder()
+                    .keyId(keyId)
+                    .encryptionAlgorithm(alg.getName())
+                    .plaintext(SdkBytes.fromByteBuffer(ByteBuffer.wrap(cek.getEncoded())))
+                    .encryptionContext(encryptionContext)
+                    .build());
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException
-                 | KMSInvalidStateException | InvalidGrantTokenException e) {
+                 | KmsInvalidStateException | InvalidGrantTokenException e) {
             throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid client request.", e);
-        } catch (DependencyTimeoutException | KeyUnavailableException | KMSInternalException e) {
+        } catch (DependencyTimeoutException | KeyUnavailableException | KmsInternalException e) {
             throw new TemporaryJOSEException("A temporary error was thrown from KMS.", e);
         }
     }

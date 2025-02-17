@@ -16,20 +16,17 @@
 
 package com.nimbusds.jose.aws.kms.scripts;
 
-import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
-import static java.lang.System.out;
-
-import com.amazonaws.services.kms.AWSKMSClientBuilder;
-import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.aws.kms.crypto.KmsSymmetricDecrypter;
-import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
-import java.util.Map;
 import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import software.amazon.awssdk.services.kms.KmsClient;
+
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
+import static java.lang.System.out;
 
 /**
  * Script to decrypt a text payload using a KMS Symmetric CMK and generate a JWE token.
@@ -93,7 +90,7 @@ public class KmsSymmetricJweCompactDecrypterScript {
         var jweObject = JWEObject.parse(serializedJwe);
         var jweHeader = jweObject.getHeader();
         jweObject.decrypt(new KmsSymmetricDecrypter(
-                AWSKMSClientBuilder.defaultClient(),
+                KmsClient.create(),
                 jweHeader.getKeyID()));
 
         return jweObject;

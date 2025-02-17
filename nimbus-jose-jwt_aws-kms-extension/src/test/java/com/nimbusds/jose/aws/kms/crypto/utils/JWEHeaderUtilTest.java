@@ -16,11 +16,6 @@
 
 package com.nimbusds.jose.aws.kms.crypto.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
 import com.google.common.collect.ImmutableSet;
 import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
@@ -29,13 +24,17 @@ import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.aws.kms.crypto.testUtils.EasyRandomTestUtils;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
-import java.util.Map;
-import java.util.Set;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.kms.model.EncryptionAlgorithmSpec;
+
+import java.util.Map;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.*;
 
 @DisplayName("For the JWEHeaderUtil class,")
 class JWEHeaderUtilTest {
@@ -71,7 +70,7 @@ class JWEHeaderUtilTest {
             @DisplayName("should throw JOSEException.")
             void shouldThrowJOSEException() {
                 assertThatThrownBy(() -> JWEHeaderUtil.validateJWEHeaderAlgorithms(
-                                testJweHeader, testSupportedAlgorithms, testSupportedEncryptionMethods))
+                        testJweHeader, testSupportedAlgorithms, testSupportedEncryptionMethods))
                         .isInstanceOf(JOSEException.class)
                         .hasMessage(AlgorithmSupportMessage.unsupportedJWEAlgorithm(
                                 testJweHeader.getAlgorithm(), testSupportedAlgorithms))
@@ -169,6 +168,7 @@ class JWEHeaderUtilTest {
             void beforeEach() {
                 testEncryptionContext = random.nextObject(Map.class);
             }
+
             @Test
             @DisplayName("should return the updated header with encryption context.")
             void shouldReturnUpdatedHeader() {

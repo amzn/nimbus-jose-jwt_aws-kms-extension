@@ -16,35 +16,27 @@
 
 package com.nimbusds.jose.aws.kms.crypto.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
-
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import lombok.SneakyThrows;
 import org.jeasy.random.EasyRandom;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.MessageType;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 @DisplayName("For KmsAsymmetricSigningCryptoProvider class,")
 @ExtendWith(MockitoExtension.class)
@@ -53,7 +45,7 @@ public class KmsAsymmetricSigningCryptoProviderTest {
     private EasyRandom random;
 
     @Mock
-    private AWSKMS mockAwsKms;
+    private KmsClient mockAwsKms;
     private String testPrivateKeyId;
     private MessageType testMessageType;
 

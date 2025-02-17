@@ -16,7 +16,6 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
-import com.amazonaws.services.kms.AWSKMS;
 import com.nimbusds.jose.CriticalHeaderParamsAware;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEDecrypter;
@@ -25,9 +24,11 @@ import com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider;
 import com.nimbusds.jose.aws.kms.crypto.utils.JWEDecrypterUtil;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.util.Base64URL;
+import lombok.NonNull;
+import software.amazon.awssdk.services.kms.KmsClient;
+
 import java.util.Map;
 import java.util.Set;
-import lombok.NonNull;
 
 /**
  * Decrypter implementation for a symmetric or asymmetric key stored in AWS KMS.
@@ -43,25 +44,25 @@ public class KmsDefaultDecrypter extends KmsDefaultEncryptionCryptoProvider impl
      */
     private final CriticalHeaderParamsDeferral critPolicy = new CriticalHeaderParamsDeferral();
 
-    public KmsDefaultDecrypter(@NonNull final AWSKMS kms,
+    public KmsDefaultDecrypter(@NonNull final KmsClient kms,
                                @NonNull final String keyId,
                                @NonNull final Map<String, String> encryptionContext) {
         super(kms, keyId, encryptionContext);
     }
 
-    public KmsDefaultDecrypter(@NonNull final AWSKMS kms,
+    public KmsDefaultDecrypter(@NonNull final KmsClient kms,
                                @NonNull final String keyId) {
         super(kms, keyId);
     }
 
-    public KmsDefaultDecrypter(@NonNull final AWSKMS kms,
+    public KmsDefaultDecrypter(@NonNull final KmsClient kms,
                                @NonNull final String keyId,
                                @NonNull final Set<String> defCritHeaders) {
         this(kms, keyId);
         critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
     }
 
-    public KmsDefaultDecrypter(@NonNull final AWSKMS kms,
+    public KmsDefaultDecrypter(@NonNull final KmsClient kms,
                                @NonNull final String keyId,
                                @NonNull final Map<String, String> encryptionContext,
                                @NonNull final Set<String> defCritHeaders) {

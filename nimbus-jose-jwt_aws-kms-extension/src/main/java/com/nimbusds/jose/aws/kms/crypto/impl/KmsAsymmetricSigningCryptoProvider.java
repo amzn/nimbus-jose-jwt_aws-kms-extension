@@ -16,25 +16,26 @@
 
 package com.nimbusds.jose.aws.kms.crypto.impl;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 import com.google.common.collect.ImmutableMap;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.impl.BaseJWSProvider;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.var;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.MessageType;
+import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
+
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.var;
-import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 
 
 /**
@@ -47,7 +48,7 @@ public abstract class KmsAsymmetricSigningCryptoProvider extends BaseJWSProvider
      */
     @NonNull
     @Getter(AccessLevel.PROTECTED)
-    private final AWSKMS kms;
+    private final KmsClient kms;
 
     /**
      * KMS private-key (CMK) ID (it can be a key ID, key ARN, key alias or key alias ARN)
@@ -58,7 +59,7 @@ public abstract class KmsAsymmetricSigningCryptoProvider extends BaseJWSProvider
 
     /**
      * KMS Message Type. Refer KMS's sign and verify APIs for details.
-     * Ref: https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html#KMS-Sign-request-MessageType
+     * Ref: <a href="https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html#KMS-Sign-request-MessageType">...</a>
      */
     @NonNull
     @Getter(AccessLevel.PROTECTED)
@@ -134,13 +135,13 @@ public abstract class KmsAsymmetricSigningCryptoProvider extends BaseJWSProvider
      *
      * @see <a href="https://datatracker.ietf.org/doc/html/rfc7518#section-3.1">RFC-7518 Section 3.1</a>
      * @see <a href="https://docs.aws.amazon.com/kms/latest/developerguide/asymmetric-key-specs.html">
-     *     AWS Developer Guide - Asymmetric key specs
-     *     </a>
+     * AWS Developer Guide - Asymmetric key specs
+     * </a>
      */
     public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.keySet();
 
     protected KmsAsymmetricSigningCryptoProvider(
-            @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
+            @NonNull final KmsClient kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
         super(SUPPORTED_ALGORITHMS);
         this.kms = kms;
         this.privateKeyId = privateKeyId;

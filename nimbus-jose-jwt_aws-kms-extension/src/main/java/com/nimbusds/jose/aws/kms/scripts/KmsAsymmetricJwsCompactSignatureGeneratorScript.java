@@ -16,12 +16,6 @@
 
 package com.nimbusds.jose.aws.kms.scripts;
 
-import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
-import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.MESSAGE_TYPE;
-import static java.lang.System.out;
-
-import com.amazonaws.services.kms.AWSKMSClientBuilder;
-import com.amazonaws.services.kms.model.MessageType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
@@ -32,6 +26,12 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.MessageType;
+
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.MESSAGE_TYPE;
+import static java.lang.System.out;
 
 /**
  * Script to generate signature for a text payload using a KMS Asymmetric CMK and generate a JWS token.
@@ -119,7 +119,7 @@ public class KmsAsymmetricJwsCompactSignatureGeneratorScript {
     private JWSObject sign(final JWSAlgorithm alg, final String kid, final String payload, final String messageType)
             throws Exception {
         final var jwsSigner = new KmsAsymmetricSigner(
-                AWSKMSClientBuilder.defaultClient(),
+                KmsClient.create(),
                 kid,
                 MessageType.fromValue(messageType));
         final var jwsHeader = new JWSHeader.Builder(alg)

@@ -16,35 +16,29 @@
 
 package com.nimbusds.jose.aws.kms.crypto.impl;
 
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.withSettings;
-
-import com.amazonaws.services.kms.AWSKMS;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.aws.kms.crypto.utils.JWEHeaderUtil;
-import java.util.Map;
 import org.jeasy.random.EasyRandom;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.kms.KmsClient;
+
+import java.util.Map;
+
+import static org.mockito.Mockito.*;
 
 @DisplayName("For KmsDefaultEncryptionCryptoProvider class,")
 @ExtendWith(MockitoExtension.class)
 class KmsDefaultEncryptionCryptoProviderTest {
 
-    private EasyRandom random = new EasyRandom();
+    private final EasyRandom random = new EasyRandom();
 
     @Mock
-    private AWSKMS mockAwsKms;
-    private String testPrivateKeyId = random.nextObject(String.class);
+    private KmsClient mockAwsKms;
+    private final String testPrivateKeyId = random.nextObject(String.class);
 
     private KmsDefaultEncryptionCryptoProvider kmsDefaultEncryptionCryptoProvider;
 

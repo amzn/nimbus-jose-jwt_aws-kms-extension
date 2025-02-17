@@ -18,7 +18,7 @@ java {
     withSourcesJar()
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
@@ -32,13 +32,15 @@ dependencies {
     api 'com.nimbusds:nimbus-jose-jwt:[9,9.31]'
 
     // These dependencies is used internally, and not exposed to consumers on their own compile classpath.
-    implementation 'com.amazonaws:aws-java-sdk-kms:[1.12, 2)'
-    implementation 'commons-cli:commons-cli:[1.4, 2)'
+    implementation 'software.amazon.awssdk:kms:2.30.18'
+    implementation 'commons-cli:commons-cli:1.9.0'
+    implementation 'commons-codec:commons-codec:1.18.0'
     implementation 'com.google.guava:guava:[32,)'
 
     // Use JUnit Jupiter for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter:5.+'
     testImplementation 'org.assertj:assertj-core:[3,4)'
+    testImplementation 'org.junit.platform:junit-platform-launcher:1.11.4'
 
     // Mockito
     testImplementation 'org.mockito:mockito-core:[3,4)'

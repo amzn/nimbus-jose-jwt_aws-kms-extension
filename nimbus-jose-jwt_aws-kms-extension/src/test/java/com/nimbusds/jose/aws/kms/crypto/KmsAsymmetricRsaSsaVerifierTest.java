@@ -16,28 +16,6 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
-import static com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricSigningCryptoProvider.JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.AWSKMSException;
-import com.amazonaws.services.kms.model.DependencyTimeoutException;
-import com.amazonaws.services.kms.model.DisabledException;
-import com.amazonaws.services.kms.model.InvalidGrantTokenException;
-import com.amazonaws.services.kms.model.InvalidKeyUsageException;
-import com.amazonaws.services.kms.model.KMSInternalException;
-import com.amazonaws.services.kms.model.KMSInvalidSignatureException;
-import com.amazonaws.services.kms.model.KMSInvalidStateException;
-import com.amazonaws.services.kms.model.KeyUnavailableException;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.NotFoundException;
-import com.amazonaws.services.kms.model.VerifyRequest;
-import com.amazonaws.services.kms.model.VerifyResult;
 import com.google.common.collect.ImmutableSet;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -45,8 +23,6 @@ import com.nimbusds.jose.RemoteKeySourceException;
 import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.util.Base64URL;
-import java.nio.ByteBuffer;
-import java.util.Set;
 import lombok.SneakyThrows;
 import lombok.var;
 import org.jeasy.random.EasyRandom;
@@ -60,6 +36,17 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.commons.support.ReflectionSupport;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.*;
+
+import java.nio.ByteBuffer;
+import java.util.Set;
+
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricSigningCryptoProvider.JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 
 @DisplayName("For KmsAsymmetricRSASSAVerifier class,")
@@ -69,7 +56,7 @@ public class KmsAsymmetricRsaSsaVerifierTest {
     private final EasyRandom random = new EasyRandom();
 
     @Mock
-    private AWSKMS mockAwsKms;
+    private KmsClient mockAwsKms;
     private String testPrivateKeyId;
     private MessageType testMessageType;
     private Set<String> testCriticalHeaders;
@@ -194,15 +181,16 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             class WithInvalidSigningKey {
 
                 @SneakyThrows
-                AWSKMSException parameterizedBeforeEach(Class<AWSKMSException> invalidSigningExceptionClass) {
+                KmsException parameterizedBeforeEach(Class<KmsException> invalidSigningExceptionClass) {
                     final var mockInvalidSigningException = mock(invalidSigningExceptionClass);
                     when(mockAwsKms
-                            .verify(new VerifyRequest()
-                                    .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
-                                    .withMessageType(testMessageType)
-                                    .withMessage(mockMessage)
-                                    .withSignature(ByteBuffer.wrap(testSignature.decode()))))
+                            .verify(VerifyRequest.builder()
+                                    .keyId(testPrivateKeyId)
+                                    .signingAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
+                                    .messageType(testMessageType)
+                                    .message(SdkBytes.fromByteBuffer(mockMessage))
+                                    .signature(SdkBytes.fromByteBuffer(ByteBuffer.wrap(testSignature.decode())))
+                                    .build()))
                             .thenThrow(mockInvalidSigningException);
                     return mockInvalidSigningException;
                 }
@@ -211,8 +199,8 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 @DisplayName("should throw RemoteKeySourceException.")
                 @ValueSource(classes = {
                         NotFoundException.class, DisabledException.class, KeyUnavailableException.class,
-                        InvalidKeyUsageException.class, KMSInvalidStateException.class})
-                void shouldThrowRemoteKeySourceException(Class<AWSKMSException> exceptionClass) {
+                        InvalidKeyUsageException.class, KmsInvalidStateException.class})
+                void shouldThrowRemoteKeySourceException(Class<KmsException> exceptionClass) {
                     final var mockInvalidSigningException = parameterizedBeforeEach(exceptionClass);
                     assertThatThrownBy(
                             () -> kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature))
@@ -227,15 +215,16 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             class WithTemporaryExceptionFromKms {
 
                 @SneakyThrows
-                AWSKMSException parameterizedBeforeEach(Class<AWSKMSException> temporaryKmsExceptionClass) {
+                KmsException parameterizedBeforeEach(Class<KmsException> temporaryKmsExceptionClass) {
                     final var mockTemporaryKmsException = mock(temporaryKmsExceptionClass);
                     when(mockAwsKms
-                            .verify(new VerifyRequest()
-                                    .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
-                                    .withMessageType(testMessageType)
-                                    .withMessage(mockMessage)
-                                    .withSignature(ByteBuffer.wrap(testSignature.decode()))))
+                            .verify(VerifyRequest.builder()
+                                    .keyId(testPrivateKeyId)
+                                    .signingAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
+                                    .messageType(testMessageType)
+                                    .message(SdkBytes.fromByteBuffer(mockMessage))
+                                    .signature(SdkBytes.fromByteBuffer(ByteBuffer.wrap(testSignature.decode())))
+                                    .build()))
                             .thenThrow(mockTemporaryKmsException);
                     return mockTemporaryKmsException;
                 }
@@ -243,8 +232,8 @@ public class KmsAsymmetricRsaSsaVerifierTest {
                 @ParameterizedTest
                 @DisplayName("should throw TemporaryJOSEException.")
                 @ValueSource(classes = {
-                        DependencyTimeoutException.class, InvalidGrantTokenException.class, KMSInternalException.class})
-                void shouldThrowJOSEException(Class<AWSKMSException> exceptionClass) {
+                        DependencyTimeoutException.class, InvalidGrantTokenException.class, KmsInternalException.class})
+                void shouldThrowJOSEException(Class<KmsException> exceptionClass) {
                     final var mockInvalidSigningException = parameterizedBeforeEach(exceptionClass);
                     assertThatThrownBy(
                             () -> kmsAsymmetricRsaSsaVerifier.verify(testJweHeader, testSigningInput, testSignature))
@@ -259,17 +248,18 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             class WithKMSInvalidSignatureException {
 
                 @Mock
-                private KMSInvalidSignatureException mockKmsInvalidSignatureException;
+                private KmsInvalidSignatureException mockKmsInvalidSignatureException;
 
                 @BeforeEach
                 void beforeEach() {
                     when(mockAwsKms
-                            .verify(new VerifyRequest()
-                                    .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
-                                    .withMessageType(testMessageType)
-                                    .withMessage(mockMessage)
-                                    .withSignature(ByteBuffer.wrap(testSignature.decode()))))
+                            .verify(VerifyRequest.builder()
+                                    .keyId(testPrivateKeyId)
+                                    .signingAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
+                                    .messageType(testMessageType)
+                                    .message(SdkBytes.fromByteBuffer(mockMessage))
+                                    .signature(SdkBytes.fromByteBuffer(ByteBuffer.wrap(testSignature.decode())))
+                                    .build()))
                             .thenThrow(mockKmsInvalidSignatureException);
                 }
 
@@ -288,20 +278,21 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             class WithInvalidSignature {
 
                 @Mock
-                private VerifyResult mockVerifyResult;
+                private VerifyResponse mockVerifyResponse;
 
                 @BeforeEach
                 void beforeEach() {
                     when(mockAwsKms
-                            .verify(new VerifyRequest()
-                                    .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
-                                    .withMessageType(testMessageType)
-                                    .withMessage(mockMessage)
-                                    .withSignature(ByteBuffer.wrap(testSignature.decode()))))
-                            .thenReturn(mockVerifyResult);
+                            .verify(VerifyRequest.builder()
+                                    .keyId(testPrivateKeyId)
+                                    .signingAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
+                                    .messageType(testMessageType)
+                                    .message(SdkBytes.fromByteBuffer(mockMessage))
+                                    .signature(SdkBytes.fromByteBuffer(ByteBuffer.wrap(testSignature.decode())))
+                                    .build()))
+                            .thenReturn(mockVerifyResponse);
 
-                    when(mockVerifyResult.isSignatureValid()).thenReturn(false);
+                    when(mockVerifyResponse.signatureValid()).thenReturn(false);
                 }
 
                 @Test
@@ -319,20 +310,21 @@ public class KmsAsymmetricRsaSsaVerifierTest {
             class WithValidSignature {
 
                 @Mock
-                private VerifyResult mockVerifyResult;
+                private VerifyResponse mockVerifyResponse;
 
                 @BeforeEach
                 void beforeEach() {
                     when(mockAwsKms
-                            .verify(new VerifyRequest()
-                                    .withKeyId(testPrivateKeyId)
-                                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
-                                    .withMessageType(testMessageType)
-                                    .withMessage(mockMessage)
-                                    .withSignature(ByteBuffer.wrap(testSignature.decode()))))
-                            .thenReturn(mockVerifyResult);
+                            .verify(VerifyRequest.builder()
+                                    .keyId(testPrivateKeyId)
+                                    .signingAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()).toString())
+                                    .messageType(testMessageType)
+                                    .message(SdkBytes.fromByteBuffer(mockMessage))
+                                    .signature(SdkBytes.fromByteBuffer(ByteBuffer.wrap(testSignature.decode())))
+                                    .build()))
+                            .thenReturn(mockVerifyResponse);
 
-                    when(mockVerifyResult.isSignatureValid()).thenReturn(true);
+                    when(mockVerifyResponse.signatureValid()).thenReturn(true);
                 }
 
                 @Test

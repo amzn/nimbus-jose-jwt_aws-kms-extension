@@ -16,10 +16,6 @@
 
 package com.nimbusds.jose.aws.kms.scripts;
 
-import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
-import static java.lang.System.out;
-
-import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.aws.kms.crypto.KmsDefaultDecrypter;
 import lombok.var;
@@ -27,6 +23,10 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import software.amazon.awssdk.services.kms.KmsClient;
+
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
+import static java.lang.System.out;
 
 /**
  * Script to decrypt a text payload using a KMS key and generate a JWE token.
@@ -82,7 +82,7 @@ public class KmsDefaultJweCompactDecrypterScript {
         var jweObject = JWEObject.parse(serializedJwe);
         var jweHeader = jweObject.getHeader();
         jweObject.decrypt(new KmsDefaultDecrypter(
-                AWSKMSClientBuilder.defaultClient(),
+                KmsClient.create(),
                 jweHeader.getKeyID()));
 
         return jweObject;

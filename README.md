@@ -11,10 +11,10 @@ In the current version following encryption and signing operations are supported
 1. Symmetric encryption (AES based).
     1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsSymmetricEncrypter`
        and `com.nimbusds.jose.aws.kms.crypto.KmsSymmetricDecrypter`
-1. Asymmetric or Symmetric encryption (RSA or ECDSA based for asymmetric keys and AES based for symmetric keys).
+2. Asymmetric or Symmetric encryption (RSA or ECDSA based for asymmetric keys and AES based for symmetric keys).
     1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsDefaultEncrypter`
        and `com.nimbusds.jose.aws.kms.crypto.KmsDefaultDecrypter`
-1. Asymmetric signing (RSA or ECDSA based).
+3. Asymmetric signing (RSA or ECDSA based).
     1. Classes: `com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricSigner`
        and `com.nimbusds.jose.aws.kms.crypto.KmsAsymmetricVerifier`
 
