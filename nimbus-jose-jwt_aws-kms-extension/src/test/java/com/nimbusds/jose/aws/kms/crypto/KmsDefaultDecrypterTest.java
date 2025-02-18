@@ -16,25 +16,8 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
-import com.amazonaws.services.kms.model.DecryptResult;
-import com.amazonaws.services.kms.model.DecryptRequest;
 import com.google.common.collect.ImmutableSet;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.RemoteKeySourceException;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.aws.kms.crypto.testUtils.EasyRandomTestUtils;
 import com.nimbusds.jose.aws.kms.crypto.utils.JWEDecrypterUtil;
 import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
@@ -42,17 +25,9 @@ import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.jca.JWEJCAContext;
 import com.nimbusds.jose.util.Base64URL;
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.Set;
-import javax.crypto.spec.SecretKeySpec;
 import lombok.SneakyThrows;
 import org.jeasy.random.EasyRandom;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -60,6 +35,22 @@ import org.junit.platform.commons.support.ReflectionSupport;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.DecryptRequest;
+import software.amazon.awssdk.services.kms.model.DecryptResponse;
+import software.amazon.awssdk.services.kms.model.EncryptionAlgorithmSpec;
+
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.util.Map;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 @DisplayName("For KmsDefaultDecrypter class, ")
 @ExtendWith(MockitoExtension.class)
@@ -68,7 +59,7 @@ public class KmsDefaultDecrypterTest {
     private final EasyRandom random = EasyRandomTestUtils.getEasyRandomWithByteBufferSupport();
 
     @Mock
-    private AWSKMS mockAwsKms;
+    private KmsClient mockAwsKms;
     private String testKeyId;
     private Map<String, String> testEncryptionContext;
     private Set<String> testDeferredCriticalHeaders;
@@ -171,7 +162,7 @@ public class KmsDefaultDecrypterTest {
             private JWEJCAContext mockJWEJCAContext;
             @Mock
             JWEDecrypterUtil jweDecrypterUtil;
-            private final DecryptResult testDecryptResult = random.nextObject(DecryptResult.class);
+            private final DecryptResponse testDecryptResponse = DecryptResponse.builder().plaintext(SdkBytes.fromString("test", Charset.defaultCharset())).build();
             private final MockedStatic<ContentCryptoProvider> mockContentCryptoProvider =
                     mockStatic(ContentCryptoProvider.class);
             private byte[] expectedData = new byte[random.nextInt(512)];
@@ -189,7 +180,7 @@ public class KmsDefaultDecrypterTest {
                                 () -> ContentCryptoProvider.decrypt(
                                         testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag,
                                         new SecretKeySpec(
-                                                testDecryptResult.getPlaintext().array(),
+                                                testDecryptResponse.plaintext().asByteArray(),
                                                 testJweHeader.getAlgorithm().toString()),
                                         kmsDefaultDecrypter.getJCAContext()))
                         .thenReturn(expectedData);
@@ -226,12 +217,13 @@ public class KmsDefaultDecrypterTest {
                 @SneakyThrows
                 void beforeEach() {
                     when(mockAwsKms
-                            .decrypt(new DecryptRequest()
-                                    .withEncryptionContext(testEncryptionContext)
-                                    .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
-                                    .withKeyId(testKeyId)
-                                    .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
-                            .thenReturn(testDecryptResult);
+                            .decrypt(DecryptRequest.builder()
+                                    .encryptionContext(testEncryptionContext)
+                                    .encryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                    .keyId(testKeyId)
+                                    .ciphertextBlob(SdkBytes.fromByteBuffer(ByteBuffer.wrap(testEncryptedKey.decode())))
+                                    .build()))
+                            .thenReturn(testDecryptResponse);
                     when(jweDecrypterUtil.decrypt(mockAwsKms, testKeyId, testEncryptionContext,
                             testJweHeader, testEncryptedKey, testIv, testCipherText,
                             testAuthTag, mockJWEJCAContext))

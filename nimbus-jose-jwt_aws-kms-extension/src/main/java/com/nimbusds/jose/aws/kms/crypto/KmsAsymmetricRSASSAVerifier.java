@@ -17,12 +17,13 @@
 package com.nimbusds.jose.aws.kms.crypto;
 
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.MessageType;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricRSASSAProvider;
-import java.util.Set;
-import javax.annotation.concurrent.ThreadSafe;
 import lombok.NonNull;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.MessageType;
+
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.Set;
 
 /**
  * Sign verifier implementation for RSA-SSA signing with public/private key stored in AWS KMS.
@@ -37,12 +38,12 @@ import lombok.NonNull;
 public class KmsAsymmetricRSASSAVerifier extends KmsAsymmetricVerifier {
 
     public KmsAsymmetricRSASSAVerifier(
-            @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
+            @NonNull final KmsClient kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
         super(kms, privateKeyId, messageType);
     }
 
     public KmsAsymmetricRSASSAVerifier(
-            @NonNull final AWSKMS kms, @NonNull String privateKeyId, @NonNull final MessageType messageType,
+            @NonNull final KmsClient kms, @NonNull String privateKeyId, @NonNull final MessageType messageType,
             @NonNull final Set<String> defCritHeaders) {
         super(kms, privateKeyId, messageType, defCritHeaders);
     }

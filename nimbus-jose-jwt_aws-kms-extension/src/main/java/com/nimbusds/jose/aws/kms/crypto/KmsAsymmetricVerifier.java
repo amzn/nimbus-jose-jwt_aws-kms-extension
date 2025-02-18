@@ -17,33 +17,20 @@
 package com.nimbusds.jose.aws.kms.crypto;
 
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.DependencyTimeoutException;
-import com.amazonaws.services.kms.model.DisabledException;
-import com.amazonaws.services.kms.model.InvalidGrantTokenException;
-import com.amazonaws.services.kms.model.InvalidKeyUsageException;
-import com.amazonaws.services.kms.model.KMSInternalException;
-import com.amazonaws.services.kms.model.KMSInvalidSignatureException;
-import com.amazonaws.services.kms.model.KMSInvalidStateException;
-import com.amazonaws.services.kms.model.KeyUnavailableException;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.NotFoundException;
-import com.amazonaws.services.kms.model.VerifyRequest;
-import com.amazonaws.services.kms.model.VerifyResult;
-import com.nimbusds.jose.CriticalHeaderParamsAware;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.RemoteKeySourceException;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsAsymmetricSigningCryptoProvider;
 import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.CriticalHeaderParamsDeferral;
 import com.nimbusds.jose.util.Base64URL;
-import java.nio.ByteBuffer;
-import java.util.Set;
-import javax.annotation.concurrent.ThreadSafe;
 import lombok.NonNull;
 import lombok.var;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.*;
+
+import javax.annotation.concurrent.ThreadSafe;
+import java.nio.ByteBuffer;
+import java.util.Set;
 
 /**
  * Sign verifier implementation for asymmetric signing with public/private key stored in AWS KMS.
@@ -52,9 +39,7 @@ import lombok.var;
  * constructor parameters.
  */
 @ThreadSafe
-public class KmsAsymmetricVerifier
-        extends KmsAsymmetricSigningCryptoProvider
-        implements JWSVerifier, CriticalHeaderParamsAware {
+public class KmsAsymmetricVerifier extends KmsAsymmetricSigningCryptoProvider implements JWSVerifier, CriticalHeaderParamsAware {
 
     /**
      * The critical header policy.
@@ -63,13 +48,13 @@ public class KmsAsymmetricVerifier
 
 
     public KmsAsymmetricVerifier(
-            @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
+            @NonNull final KmsClient kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
         super(kms, privateKeyId, messageType);
     }
 
 
     public KmsAsymmetricVerifier(
-            @NonNull final AWSKMS kms, @NonNull String privateKeyId, @NonNull final MessageType messageType,
+            @NonNull final KmsClient kms, @NonNull String privateKeyId, @NonNull final MessageType messageType,
             @NonNull final Set<String> defCritHeaders) {
         super(kms, privateKeyId, messageType);
         critPolicy.setDeferredCriticalHeaderParams(defCritHeaders);
@@ -101,24 +86,25 @@ public class KmsAsymmetricVerifier
 
         var message = getMessage(header, signedContent);
 
-        VerifyResult verifyResult;
+        VerifyResponse verifyResponse;
         try {
-            verifyResult = getKms().verify(new VerifyRequest()
-                    .withKeyId(getPrivateKeyId())
-                    .withSigningAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(header.getAlgorithm()).toString())
-                    .withMessageType(getMessageType())
-                    .withMessage(message)
-                    .withSignature(ByteBuffer.wrap(signature.decode())));
-        } catch (KMSInvalidSignatureException e) {
+            verifyResponse = getKms().verify(VerifyRequest.builder()
+                    .keyId(getPrivateKeyId())
+                    .signingAlgorithm(JWS_ALGORITHM_TO_SIGNING_ALGORITHM_SPEC.get(header.getAlgorithm()).toString())
+                    .messageType(getMessageType())
+                    .message(SdkBytes.fromByteBuffer(message))
+                    .signature(SdkBytes.fromByteBuffer(ByteBuffer.wrap(signature.decode())))
+                    .build());
+        } catch (KmsInvalidSignatureException e) {
             return false;
         } catch (NotFoundException | DisabledException | KeyUnavailableException | InvalidKeyUsageException
-                | KMSInvalidStateException e) {
+                 | KmsInvalidStateException e) {
             throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid key.", e);
-        } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException e) {
+        } catch (DependencyTimeoutException | InvalidGrantTokenException | KmsInternalException e) {
             throw new TemporaryJOSEException("A temporary exception was thrown from KMS.", e);
         }
 
-        return verifyResult.isSignatureValid();
+        return verifyResponse.signatureValid();
     }
 
 }

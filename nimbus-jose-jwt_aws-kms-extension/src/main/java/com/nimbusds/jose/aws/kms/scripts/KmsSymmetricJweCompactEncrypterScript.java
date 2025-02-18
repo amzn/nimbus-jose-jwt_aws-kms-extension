@@ -16,22 +16,17 @@
 
 package com.nimbusds.jose.aws.kms.scripts;
 
-import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
-import static java.lang.System.out;
-
-import com.amazonaws.services.kms.AWSKMSClientBuilder;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.JWEObject;
-import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.aws.kms.crypto.KmsSymmetricEncrypter;
-import java.util.Map;
 import lombok.var;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import software.amazon.awssdk.services.kms.KmsClient;
+
+import static com.nimbusds.jose.aws.kms.scripts.ScriptConstants.LINE_SEPARATOR;
+import static java.lang.System.out;
 
 /**
  * Script to encrypt a text payload using a KMS Symmetric CMK and generate a JWE token.
@@ -119,7 +114,7 @@ public class KmsSymmetricJweCompactEncrypterScript {
     private JWEObject encrypt(
             final JWEAlgorithm alg, final EncryptionMethod enc, final String kid, final String payload)
             throws Exception {
-        var jweEncrypter = new KmsSymmetricEncrypter(AWSKMSClientBuilder.defaultClient(), kid);
+        var jweEncrypter = new KmsSymmetricEncrypter(KmsClient.create(), kid);
         var jweObject = new JWEObject(new JWEHeader.Builder(alg, enc).keyID(kid).build(), new Payload(payload));
         jweObject.encrypt(jweEncrypter);
         return jweObject;

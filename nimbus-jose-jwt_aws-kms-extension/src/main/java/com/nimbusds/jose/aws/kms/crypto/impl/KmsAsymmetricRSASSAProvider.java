@@ -16,27 +16,9 @@
 
 package com.nimbusds.jose.aws.kms.crypto.impl;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
-import com.google.common.collect.ImmutableMap;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.impl.BaseJWSProvider;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.var;
-import org.apache.commons.codec.digest.MessageDigestAlgorithms;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.MessageType;
 
 
 /**
@@ -47,7 +29,7 @@ import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 @Deprecated
 public abstract class KmsAsymmetricRSASSAProvider extends KmsAsymmetricSigningCryptoProvider {
     protected KmsAsymmetricRSASSAProvider(
-            @NonNull final AWSKMS kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
+            @NonNull final KmsClient kms, @NonNull final String privateKeyId, @NonNull final MessageType messageType) {
         super(kms, privateKeyId, messageType);
     }
 }

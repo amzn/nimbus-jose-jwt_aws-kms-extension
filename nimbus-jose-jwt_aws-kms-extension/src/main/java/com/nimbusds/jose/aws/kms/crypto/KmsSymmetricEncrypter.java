@@ -16,33 +16,20 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
-import com.amazonaws.services.kms.AWSKMS;
-import com.amazonaws.services.kms.model.DependencyTimeoutException;
-import com.amazonaws.services.kms.model.DisabledException;
-import com.amazonaws.services.kms.model.GenerateDataKeyRequest;
-import com.amazonaws.services.kms.model.GenerateDataKeyResult;
-import com.amazonaws.services.kms.model.InvalidGrantTokenException;
-import com.amazonaws.services.kms.model.InvalidKeyUsageException;
-import com.amazonaws.services.kms.model.KMSInternalException;
-import com.amazonaws.services.kms.model.KMSInvalidStateException;
-import com.amazonaws.services.kms.model.KeyUnavailableException;
-import com.amazonaws.services.kms.model.NotFoundException;
-import com.nimbusds.jose.EncryptionMethod;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWECryptoParts;
-import com.nimbusds.jose.JWEEncrypter;
-import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.RemoteKeySourceException;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.aws.kms.crypto.utils.JWEHeaderUtil;
 import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
 import com.nimbusds.jose.util.Base64URL;
-import java.util.Map;
+import lombok.NonNull;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.*;
+
 import javax.annotation.concurrent.ThreadSafe;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import lombok.NonNull;
+import java.util.Map;
 
 /**
  * Encrypter implementation for SYMMETRIC (AES based) signing with public/private key stored in AWS KMS.
@@ -53,12 +40,12 @@ import lombok.NonNull;
 @ThreadSafe
 public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements JWEEncrypter {
 
-    public KmsSymmetricEncrypter(@NonNull final AWSKMS kms, @NonNull final String keyId) {
+    public KmsSymmetricEncrypter(@NonNull final KmsClient kms, @NonNull final String keyId) {
         super(kms, keyId);
     }
 
-    public KmsSymmetricEncrypter(@NonNull final AWSKMS kms, @NonNull final String keyId,
-            @NonNull final Map<String, String> encryptionContext) {
+    public KmsSymmetricEncrypter(@NonNull final KmsClient kms, @NonNull final String keyId,
+                                 @NonNull final Map<String, String> encryptionContext) {
         super(kms, keyId, encryptionContext);
     }
 
@@ -72,28 +59,29 @@ public class KmsSymmetricEncrypter extends KmsSymmetricCryptoProvider implements
         final Base64URL encryptedKey; // The second JWE part
 
         // Generate and encrypt the CEK according to the enc method
-        GenerateDataKeyResult generateDataKeyResult = generateDataKey(getKeyId(), header.getEncryptionMethod());
+        GenerateDataKeyResponse generateDataKeyResponse = generateDataKey(getKeyId(), header.getEncryptionMethod());
         final SecretKey cek = new SecretKeySpec(
-                generateDataKeyResult.getPlaintext().array(), header.getAlgorithm().toString());
+                generateDataKeyResponse.plaintext().asByteArray(), header.getAlgorithm().toString());
 
-        encryptedKey = Base64URL.encode(generateDataKeyResult.getCiphertextBlob().array());
+        encryptedKey = Base64URL.encode(generateDataKeyResponse.ciphertextBlob().asByteArray());
         updatedHeader = JWEHeaderUtil.getJWEHeaderWithEncryptionContext(
                 header, ENCRYPTION_CONTEXT_HEADER, getEncryptionContext());
 
         return ContentCryptoProvider.encrypt(updatedHeader, clearText, cek, encryptedKey, getJCAContext());
     }
 
-    private GenerateDataKeyResult generateDataKey(String keyId, EncryptionMethod encryptionMethod)
+    private GenerateDataKeyResponse generateDataKey(String keyId, EncryptionMethod encryptionMethod)
             throws JOSEException {
         try {
-            return getKms().generateDataKey(new GenerateDataKeyRequest()
-                    .withKeyId(keyId)
-                    .withKeySpec(ENCRYPTION_METHOD_TO_DATA_KEY_SPEC_MAP.get(encryptionMethod))
-                    .withEncryptionContext(getEncryptionContext()));
+            return getKms().generateDataKey(GenerateDataKeyRequest.builder()
+                    .keyId(keyId)
+                    .keySpec(ENCRYPTION_METHOD_TO_DATA_KEY_SPEC_MAP.get(encryptionMethod))
+                    .encryptionContext(getEncryptionContext())
+                    .build());
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
-                | KMSInvalidStateException e) {
+                 | KmsInvalidStateException e) {
             throw new RemoteKeySourceException("An exception was thrown from KMS due to invalid key.", e);
-        } catch (DependencyTimeoutException | InvalidGrantTokenException | KMSInternalException e) {
+        } catch (DependencyTimeoutException | InvalidGrantTokenException | KmsInternalException e) {
             throw new TemporaryJOSEException("A temporary error was thrown from KMS.", e);
         }
     }
