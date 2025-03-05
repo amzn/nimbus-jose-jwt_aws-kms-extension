@@ -40,6 +40,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider.JWE_TO_KMS_ALGORITHM_SPEC;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -72,7 +73,7 @@ public class JWEDecrypterUtilTest {
             testKeyId = random.nextObject(String.class);
             testEncryptionContext = random.nextObject(Map.class);
             testJweHeader = new JWEHeader.Builder(
-                    JWEAlgorithm.parse(EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.toString()),
+                    JWEAlgorithm.RSA_OAEP_256,
                     EncryptionMethod.A256GCM)
                     .build();
         }
@@ -87,7 +88,7 @@ public class JWEDecrypterUtilTest {
                         .decrypt(new DecryptRequest()
                                 .withEncryptionContext(testEncryptionContext)
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                 .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
                         .thenThrow(invalidKeyException);
 
@@ -120,7 +121,7 @@ public class JWEDecrypterUtilTest {
                         .decrypt(new DecryptRequest()
                                 .withEncryptionContext(testEncryptionContext)
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                 .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
                         .thenThrow(temporaryKMSException);
 
@@ -158,7 +159,7 @@ public class JWEDecrypterUtilTest {
                         .decrypt(new DecryptRequest()
                                 .withEncryptionContext(testEncryptionContext)
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                 .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
                         .thenReturn(testDecryptResult);
 

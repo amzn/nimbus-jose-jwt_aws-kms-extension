@@ -16,6 +16,7 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider.JWE_TO_KMS_ALGORITHM_SPEC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -141,7 +142,7 @@ public class KmsDefaultDecrypterTest {
             @SneakyThrows
             void beforeEach() {
                 testJweHeader = new JWEHeader.Builder(
-                        JWEAlgorithm.parse(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256.toString()),
+                        JWEAlgorithm.RSA_OAEP_256,
                         EncryptionMethod.A256GCM)
                         .criticalParams(ImmutableSet.of("test-critical-header"))
                         .build();
@@ -228,7 +229,7 @@ public class KmsDefaultDecrypterTest {
                     when(mockAwsKms
                             .decrypt(new DecryptRequest()
                                     .withEncryptionContext(testEncryptionContext)
-                                    .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                    .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                     .withKeyId(testKeyId)
                                     .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
                             .thenReturn(testDecryptResult);

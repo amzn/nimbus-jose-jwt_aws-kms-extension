@@ -26,6 +26,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.experimental.UtilityClass;
 
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider.JWE_TO_KMS_ALGORITHM_SPEC;
+
 /**
  * Utility class containing JWE decryption related methods.
  */
@@ -69,7 +71,7 @@ public class JWEDecrypterUtil {
             return kms.decrypt(new DecryptRequest()
                     .withEncryptionContext(encryptionContext)
                     .withKeyId(keyId)
-                    .withEncryptionAlgorithm(alg.getName())
+                    .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(alg))
                     .withCiphertextBlob(ByteBuffer.wrap(encryptedKey.decode())));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException | KeyUnavailableException
                  | KMSInvalidStateException e) {

@@ -34,7 +34,6 @@ import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.RemoteKeySourceException;
 import com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider;
-import com.nimbusds.jose.aws.kms.crypto.impl.KmsSymmetricCryptoProvider;
 import com.nimbusds.jose.aws.kms.crypto.utils.JWEHeaderUtil;
 import com.nimbusds.jose.aws.kms.exceptions.TemporaryJOSEException;
 import com.nimbusds.jose.crypto.impl.ContentCryptoProvider;
@@ -88,7 +87,7 @@ public class KmsDefaultEncrypter extends KmsDefaultEncryptionCryptoProvider impl
         try {
             return getKms().encrypt(new EncryptRequest()
                     .withKeyId(keyId)
-                    .withEncryptionAlgorithm(alg.getName())
+                    .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(alg))
                     .withPlaintext(ByteBuffer.wrap(cek.getEncoded()))
                     .withEncryptionContext(encryptionContext));
         } catch (NotFoundException | DisabledException | InvalidKeyUsageException
