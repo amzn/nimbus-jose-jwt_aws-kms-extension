@@ -70,6 +70,7 @@ public abstract class KmsDefaultEncryptionCryptoProvider extends PublicBaseJWEPr
             JWEAlgorithm.parse(EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.name()),
             JWEAlgorithm.parse(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_1.name()),
             JWEAlgorithm.parse(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256.name()),
+            JWEAlgorithm.A256GCMKW,
             JWEAlgorithm.RSA_OAEP_256,
             JWEAlgorithm.RSA_OAEP);
 
@@ -77,6 +78,7 @@ public abstract class KmsDefaultEncryptionCryptoProvider extends PublicBaseJWEPr
             .put(JWEAlgorithm.parse(EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.name()), EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.name())
             .put(JWEAlgorithm.parse(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_1.name()), EncryptionAlgorithmSpec.RSAES_OAEP_SHA_1.name())
             .put(JWEAlgorithm.parse(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256.name()), EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256.name())
+            .put(JWEAlgorithm.A256GCMKW, EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.name())
             .put(JWEAlgorithm.RSA_OAEP_256, EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256.name())
             .put(JWEAlgorithm.RSA_OAEP, EncryptionAlgorithmSpec.RSAES_OAEP_SHA_1.name())
             .build();
