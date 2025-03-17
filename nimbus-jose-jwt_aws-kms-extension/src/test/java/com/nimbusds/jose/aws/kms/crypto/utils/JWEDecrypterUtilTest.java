@@ -6,7 +6,6 @@ import com.amazonaws.services.kms.model.DecryptRequest;
 import com.amazonaws.services.kms.model.DecryptResult;
 import com.amazonaws.services.kms.model.DependencyTimeoutException;
 import com.amazonaws.services.kms.model.DisabledException;
-import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
 import com.amazonaws.services.kms.model.InvalidGrantTokenException;
 import com.amazonaws.services.kms.model.InvalidKeyUsageException;
 import com.amazonaws.services.kms.model.KeyUnavailableException;
@@ -24,6 +23,7 @@ import com.nimbusds.jose.jca.JWEJCAContext;
 import com.nimbusds.jose.util.Base64URL;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.stream.Stream;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.SneakyThrows;
 import lombok.var;
@@ -32,14 +32,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider.JWE_TO_KMS_ALGORITHM_SPEC;
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider.SUPPORTED_ALGORITHMS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -49,6 +51,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("For the JWEDecrypterUtil class,")
 @ExtendWith(MockitoExtension.class)
 public class JWEDecrypterUtilTest {
+
+    static Stream<JWEHeader> supportedJWEAlgInHeader(){
+        return SUPPORTED_ALGORITHMS.stream()
+                .map(alg -> new JWEHeader.Builder(alg, EncryptionMethod.A256GCM).build());
+    }
 
     @Nested
     @DisplayName("the decrypt method,")
@@ -72,7 +79,7 @@ public class JWEDecrypterUtilTest {
             testKeyId = random.nextObject(String.class);
             testEncryptionContext = random.nextObject(Map.class);
             testJweHeader = new JWEHeader.Builder(
-                    JWEAlgorithm.parse(EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT.toString()),
+                    JWEAlgorithm.RSA_OAEP_256,
                     EncryptionMethod.A256GCM)
                     .build();
         }
@@ -87,7 +94,7 @@ public class JWEDecrypterUtilTest {
                         .decrypt(new DecryptRequest()
                                 .withEncryptionContext(testEncryptionContext)
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                 .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
                         .thenThrow(invalidKeyException);
 
@@ -120,7 +127,7 @@ public class JWEDecrypterUtilTest {
                         .decrypt(new DecryptRequest()
                                 .withEncryptionContext(testEncryptionContext)
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                 .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
                         .thenThrow(temporaryKMSException);
 
@@ -152,33 +159,34 @@ public class JWEDecrypterUtilTest {
                     mockStatic(ContentCryptoProvider.class);
             private final byte[] expectedData = new byte[random.nextInt(512)];
 
-            @BeforeEach
-            void beforeEach() {
+            void parameterizedBeforeEach(final JWEHeader jweHeader) {
                 when(mockAwsKms
                         .decrypt(new DecryptRequest()
                                 .withEncryptionContext(testEncryptionContext)
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(jweHeader.getAlgorithm()))
                                 .withCiphertextBlob(ByteBuffer.wrap(testEncryptedKey.decode()))))
                         .thenReturn(testDecryptResult);
 
                 random.nextBytes(expectedData);
                 mockContentCryptoProvider.when(
                                 () -> ContentCryptoProvider.decrypt(
-                                        testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag,
+                                        jweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag,
                                         new SecretKeySpec(
                                                 testDecryptResult.getPlaintext().array(),
-                                                testJweHeader.getAlgorithm().toString()),
+                                                jweHeader.getAlgorithm().toString()),
                                         mockJWEJCAContext))
                         .thenReturn(expectedData);
             }
 
-            @Test
+            @ParameterizedTest
             @SneakyThrows
             @DisplayName("should return decrypted data,")
-            void shouldReturnDecryptedData() {
+            @MethodSource("com.nimbusds.jose.aws.kms.crypto.utils.JWEDecrypterUtilTest#supportedJWEAlgInHeader")
+            void shouldReturnDecryptedData(final JWEHeader jweHeader) {
+                parameterizedBeforeEach(jweHeader);
                 final byte[] actualData = JWEDecrypterUtil.decrypt(mockAwsKms, testKeyId, testEncryptionContext,
-                        testJweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag, mockJWEJCAContext);
+                        jweHeader, testEncryptedKey, testIv, testCipherText, testAuthTag, mockJWEJCAContext);
                 assertThat(actualData).isEqualTo(expectedData);
             }
 

@@ -16,6 +16,7 @@
 
 package com.nimbusds.jose.aws.kms.crypto;
 
+import static com.nimbusds.jose.aws.kms.crypto.impl.KmsDefaultEncryptionCryptoProvider.JWE_TO_KMS_ALGORITHM_SPEC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +36,6 @@ import com.amazonaws.services.kms.model.DependencyTimeoutException;
 import com.amazonaws.services.kms.model.DisabledException;
 import com.amazonaws.services.kms.model.EncryptRequest;
 import com.amazonaws.services.kms.model.EncryptResult;
-import com.amazonaws.services.kms.model.EncryptionAlgorithmSpec;
 import com.amazonaws.services.kms.model.InvalidGrantTokenException;
 import com.amazonaws.services.kms.model.InvalidKeyUsageException;
 import com.amazonaws.services.kms.model.KMSInternalException;
@@ -104,7 +104,7 @@ class KmsDefaultEncrypterTest {
         void beforeEach() {
             random.nextBytes(testClearText);
             testJweHeader = new JWEHeader.Builder(
-                    JWEAlgorithm.parse(EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256.toString()),
+                    JWEAlgorithm.RSA_OAEP_256,
                     EncryptionMethod.A256GCM)
                     .build();
             ReflectionSupport.invokeMethod(
@@ -123,7 +123,7 @@ class KmsDefaultEncrypterTest {
                 when(mockAwsKms
                         .encrypt(new EncryptRequest()
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                 .withPlaintext(any())
                                 .withEncryptionContext(testEncryptionContext)))
                         .thenThrow(invalidKeyException);
@@ -154,7 +154,7 @@ class KmsDefaultEncrypterTest {
                 when(mockAwsKms
                         .encrypt(new EncryptRequest()
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                 .withPlaintext(any())
                                 .withEncryptionContext(testEncryptionContext)))
                         .thenThrow(temporaryKMSException);
@@ -204,7 +204,7 @@ class KmsDefaultEncrypterTest {
                 when(mockAwsKms
                         .encrypt(new EncryptRequest()
                                 .withKeyId(testKeyId)
-                                .withEncryptionAlgorithm(testJweHeader.getAlgorithm().getName())
+                                .withEncryptionAlgorithm(JWE_TO_KMS_ALGORITHM_SPEC.get(testJweHeader.getAlgorithm()))
                                 .withPlaintext(ByteBuffer.wrap(cekBytes))
                                 .withEncryptionContext(testEncryptionContext)))
                         .thenReturn(testEncryptedKey);
